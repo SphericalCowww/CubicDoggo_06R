@@ -9,13 +9,13 @@ Derived from <a href="https://github.com/SphericalCowww/CubicDoggo">GitHub</a>.
 
 | device | models | count | specification |
 | - | - | - | - |
-| IMU | Adafruit <a href="https://cdn-learn.adafruit.com/downloads/pdf/bno055-absolute-orientation-sensor-with-raspberry-pi-and-beaglebone-black.pdf">BNO055 [ADA2472]</a> | 1 |  |
+| IMU | Adafruit <a href="https://www.adafruit.com/product/2472?srsltid=AfmBOopFaOJasrKIi1FkizYHaVd5CtUsoR6xX3qAALgU8sYoLY70Q55M">BNO055 [ADA2472]</a> | 1 | BNO055 has in-system Kalman Filter |
 
 ## Testing IMU/LiDAR
 
 ### Testing IMU
 
-https://blog.berrybase.de/wp-content/uploads/2023/12/Abbildung_11-1536x882.png.webp
+Following <a href="https://cdn-learn.adafruit.com/downloads/pdf/bno055-absolute-orientation-sensor-with-raspberry-pi-and-beaglebone-black.pdf">link</a>. It's a bit outdated, so do change up a bit and actually connect via I2C instead for RaspPi > 3:
 
   * Vin to 1
   * GND to 9 
@@ -23,8 +23,12 @@ https://blog.berrybase.de/wp-content/uploads/2023/12/Abbildung_11-1536x882.png.w
   * SCL to 5
   * RST to 11
 
+Then do:
+
     sudo apt update && sudo apt install -y i2c-tools
     sudo i2cdetect -y 1                                                 # if 28 lights up, it's alive
+
+To test BNO055 without ROS:
     
     sudo apt install -y python3-venv python3-pip python3-lgpio
     cd python_test_scripts
@@ -33,6 +37,25 @@ https://blog.berrybase.de/wp-content/uploads/2023/12/Abbildung_11-1536x882.png.w
     pip install adafruit-circuitpython-bno055 rpi-lgpio
     python bno_test.py
     
+To test BNO055 with ROS:
+
+    sudo usermod -aG i2c $USER
+    sudo usermod -aG gpio $USER
+    cd CubicDoggo_06R
+    colcon build
+    source install/setup.bash
+    ros2 run my_robot_peripheral imu_bno055_node
+    ros2 topic hz /imu/euler
+
+To track the values:
+
+    sudo apt install ros-jazzy-plotjuggler-ros
+    ros2 run plotjuggler plotjuggler
+    ros2 run rqt_plot rqt_plot
 
 ## References:
-- ROS Packages for CHAMP Quadruped Controller (<a href="https://github.com/chvmp/champ">GitHub</a>)
+- ROS1 Packages for CHAMP Quadruped Controller (<a href="https://github.com/chvmp/champ">GitHub</a>) => node based IMU control with classical walk gait
+- Spot Micro (<a href="https://github.com/mike4192/spotMicro">GitHub</a>, <a href="https://spotmicroai.readthedocs.io/en/latest/">link</a>) => node based IMU control with classical walk gait
+- Pupper V3 (<a href="https://pupper-v3-documentation.readthedocs.io/en/latest/">link</a>) => ros2_control based IMU control with RL walk gait
+
+
