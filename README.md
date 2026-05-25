@@ -1,7 +1,6 @@
 # CubicDoggo: Upgrade to Incorporate IMU/LiDAR
 
-Derived from <a href="https://github.com/SphericalCowww/CubicDoggo">GitHub</a>.
-
+Derived from <a href="https://github.com/SphericalCowww/CubicDoggo">GitHub</a>. Copy <a href="https://github.com/SphericalCowww/CubicDoggo/tree/main/src/my_robot_description/mesh/CADv1">CADv1</a> under ``CubicDoggo_06R/tree/main/src/my_robot_description/mesh/``. Also, follow this chapter to set up the servos: ``https://github.com/SphericalCowww/CubicDoggo/tree/main#running-a-single-servo-on-ros2``
 
 ## Ingredients
 
@@ -26,12 +25,20 @@ Following <a href="https://cdn-learn.adafruit.com/downloads/pdf/bno055-absolute-
 Then do:
 
     sudo apt update && sudo apt install -y i2c-tools
+    sudo apt update && sudo apt install gpiod -y
+    sudo gpiodetect
+    sudo gpioset gpiochip4 17=1                                         # enable reset pin
     sudo i2cdetect -y 1                                                 # if 28 lights up, it's alive
+
+    sudo usermod -aG i2c $USER
+    sudo usermod -aG dialout $USER
+    sudo reboot
+    i2cdetect -y 1
 
 To test BNO055 without ROS:
     
     sudo apt install -y python3-venv python3-pip python3-lgpio
-    cd python_test_scripts
+    cd CubicDoggo_06R/python_test_scripts
     python3 -m venv env
     source env/bin/activate
     pip install adafruit-circuitpython-bno055 rpi-lgpio
@@ -39,19 +46,19 @@ To test BNO055 without ROS:
     
 To test BNO055 with ROS:
 
-    sudo usermod -aG i2c $USER
-    sudo usermod -aG gpio $USER
     cd CubicDoggo_06R
     colcon build
     source install/setup.bash
     ros2 run my_robot_peripheral imu_bno055_node
-    ros2 topic hz /imu/euler
+    # on another terminal
+    ros2 topic echo /imu/euler              # show IMU content
+    ros2 topic hz /imu/euler                # show IMU read speed
 
-To track the values:
+To track the values (remember to connect the RaspPi to a monitor):
 
+    ros2 run rqt_plot rqt_plot
     sudo apt install ros-jazzy-plotjuggler-ros
     ros2 run plotjuggler plotjuggler
-    ros2 run rqt_plot rqt_plot
 
 ## References:
 - ROS1 Packages for CHAMP Quadruped Controller (<a href="https://github.com/chvmp/champ">GitHub</a>) => node based IMU control with classical walk gait
