@@ -56,9 +56,11 @@ To test BNO055 with ROS:
 
 To track the values (remember to connect the RaspPi to a monitor):
 
-    ros2 run rqt_plot rqt_plot
     sudo apt install ros-jazzy-plotjuggler-ros
     ros2 run plotjuggler plotjuggler
+    # press start
+    # find /imu/euler => OK
+    # on the left panel => imu => euler => drags x, y, z into the plot
 
 ## References:
 - ROS1 Packages for CHAMP Quadruped Controller (<a href="https://github.com/chvmp/champ">GitHub</a>) => node based IMU control with classical walk gait
