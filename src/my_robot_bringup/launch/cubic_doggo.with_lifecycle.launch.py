@@ -98,11 +98,10 @@ def generate_launch_description():
         package="my_robot_peripheral",
         executable="imu_bno055_node",
         output="screen",
-        parameters=[{"i2c_bus":   "/sys/class/hwmon/hwmon3/in0_lcrit_alarm",
+        parameters=[{"i2c_bus":   "/dev/i2c-1",
                      "address":   0x28,
                      "reset_pin": "17"}]
     )
-
     peripheral_node = Node(
         package="my_robot_peripheral",
         executable="rasp_pi_peripheral_node",

@@ -45,8 +45,7 @@ private:
                                       "HARDWARE LOW POWER, TIME TO CHARGE BATTERY");
                 setLedTrigger("timer");
             } else {
-                RCLCPP_ERROR_THROTTLE(get_logger(), *get_clock(), 60000, "RapsPiPeripheralNode:checkHardwarePower(): "
-                                      "hardware power normal");
+                RCLCPP_INFO(get_logger(), "RapsPiPeripheralNode:checkHardwarePower(): hardware power normal");
                 setLedTrigger("none");
             }
         }
