@@ -54,13 +54,30 @@ To test BNO055 with ROS:
     ros2 topic echo /imu/euler              # show IMU content
     ros2 topic hz /imu/euler                # show IMU read speed
 
+## Tracking the variables
+
+### Reading out variables from ROS
+
+    cd CubicDoggo
+    colcon build
+    source install/setup.bash
+    ros2 launch my_robot_bringup my_robot.with_lifecycle.launch.py
+    # on another terminal for joint states
+    ros2 topic echo /joint_states
+    # on another terminal for IMU
+    ros2 topic echo /imu/euler
+
+### Tracking/plotting variables using PlotJuggler
+
 To track the values (remember to connect the RaspPi to a monitor):
 
     sudo apt install ros-jazzy-plotjuggler-ros
     ros2 run plotjuggler plotjuggler
-    # press start
-    # find /imu/euler => OK
-    # on the left panel => imu => euler => drags x, y, z into the plot
+    # start => locate the following
+    ## /imu/euler
+    ## /joint_states
+    # OK
+    # on the left panel, expand /imu and /joint_states and drag the variable to the center for live plotting
 
 ## References:
 - ROS1 Packages for CHAMP Quadruped Controller (<a href="https://github.com/chvmp/champ">GitHub</a>) => node based IMU control with classical walk gait
