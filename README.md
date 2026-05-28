@@ -22,6 +22,8 @@ Following <a href="https://cdn-learn.adafruit.com/downloads/pdf/bno055-absolute-
   * SCL to 5
   * RST to 11
 
+<img src="https://github.com/SphericalCowww/CubicDoggo_06R/blob/main/fig_IMUconnection.png" width="400">
+
 Then do:
 
     sudo apt update && sudo apt install -y i2c-tools
