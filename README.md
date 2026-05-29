@@ -64,9 +64,9 @@ To test BNO055 with ROS:
     sudo chmod -R 777 /sys/class/leds/ACT/                                     # enable LED to indicate battery condition
     sudo chmod -R 777 /sys/class/hwmon/hwmon*/                                 # enable reading of power alarm/voltage
     # test the node 
-    ros2 run my_robot_peripheral rasp_pi_peripheral_node --ros-args -p power_path:=$(which ever power alarm path)
-    # create a fake alarm by
-    echo 1 > /tmp/fake_alarm
+    echo 0 > /tmp/fake_alarm                                                   # create a fake alarm by
+    ros2 run my_robot_peripheral rasp_pi_peripheral_node --ros-args -p alarm_path:=/tmp/fake_alarm
+    echo 1 > /tmp/fake_alarm                                                   # create a fake alarm by
 
 ## Tracking the variables
 
