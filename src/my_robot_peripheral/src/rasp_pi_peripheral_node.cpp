@@ -1,4 +1,5 @@
 #include <rclcpp/rclcpp.hpp>
+#include <example_interfaces/msg/float64.hpp>
 #include <fstream>
 #include <filesystem>
 #include <string>
@@ -8,17 +9,21 @@
 class RapsPiPeripheralNode : public rclcpp::Node {
 public:
     RapsPiPeripheralNode() : Node("pi_peripheral_node") {
-        this->declare_parameter("power_path", "/sys/class/hwmon/hwmon3/in0_lcrit_alarm");
+        this->declare_parameter("alarm_path", "/sys/class/hwmon/hwmon3/in0_lcrit_alarm");
+        this->declare_parameter("volt_path",  "/sys/class/hwmon/hwmon3/in0_input");
         this->declare_parameter("led_path",   "/sys/class/leds/ACT/");
         this->declare_parameter("delay_ms",   500);
 
-        std::string power_path = this->get_parameter("power_path").as_string();
-        std::string led_path   = this->get_parameter("led_path").as_string();
-        is_rasp_pi_ = std::filesystem::exists(led_path);
+        std::string alarm_path = this->get_parameter("alarm_path").as_string();
+        std::string volt_path  = this->get_parameter("volt_path") .as_string();
+        std::string led_path   = this->get_parameter("led_path")  .as_string();
+        is_rasp_pi_ = std::filesystem::exists(alarm_path) && 
+                      std::filesystem::exists(volt_path)  &&
+                      std::filesystem::exists(led_path);
         if (is_valid() == true) {
             RCLCPP_INFO(get_logger(), "RapsPiPeripheralNode:constructor(): raspberry pi "
-                                      "power alarm peripheral detected at %s, led peripherial detected at %s", 
-                                      power_path.c_str(), led_path.c_str());
+                                      "detecting power alarm at %s, power volt at %s, led detected at %s", 
+                                      alarm_path.c_str(), volt_path.c_str(), led_path.c_str());
         } else {
             RCLCPP_WARN(get_logger(), "RapsPiPeripheralNode:constructor(): not on a raspberry pi (or no LED access)");
         }
@@ -34,11 +39,11 @@ private:
     void checkHardwarePower() {
         if (is_rasp_pi_ == false) return;
 
-        std::string power_path = this->get_parameter("power_path").as_string();
-        std::ifstream power_file(power_path);
-        if (power_file.is_open()) {
+        std::string alarm_path = this->get_parameter("alarm_path").as_string();
+        std::ifstream alarm_file(alarm_path);
+        if (alarm_file.is_open()) {
             int power_alarm;
-            power_file >> power_alarm;
+            alarm_file >> power_alarm;
             if (power_alarm == 1) {
                 RCLCPP_ERROR_THROTTLE(get_logger(), *get_clock(),  5000, "RapsPiPeripheralNode:checkHardwarePower(): "
                                       "HARDWARE LOW POWER, TIME TO CHARGE BATTERY");
@@ -49,7 +54,8 @@ private:
             }
         }
 
-        std::ifstream volt_file(power_dir + "in0_input");
+        std::string volt_path = this->get_parameter("volt_path").as_string();
+        std::ifstream volt_file(volt_path);
         if (volt_file.is_open()) {
             double volt_mv;
             volt_file >> volt_mv;

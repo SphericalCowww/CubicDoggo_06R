@@ -64,6 +64,7 @@ namespace cubic_doggo_namespace {
             const double blink_per          = 0.5;      // blinking per _ second
             int handler_index_read_volt_;
             int handler_index_write_led_;
+            double  rad_voltages_[12];
             int32_t dxl_voltages_[12];
             int32_t dxl_leds_    [12];
             rclcpp::Time last_blink_timestamp_;

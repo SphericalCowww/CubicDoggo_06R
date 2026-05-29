@@ -165,14 +165,18 @@ namespace cubic_doggo_namespace {
         dxl_wb_.getSyncReadData(handler_index_read_vel_, servo_channels_, servo_N_, dxl_velocities_, &log_);
         dxl_wb_.syncRead(handler_index_read_eff_, servo_channels_, servo_N_, &log_);
         dxl_wb_.getSyncReadData(handler_index_read_eff_, servo_channels_, servo_N_, dxl_efforts_,    &log_);
+        dxl_wb_.syncRead(handler_index_read_volt_, servo_channels_, servo_N_, &log_);
+        dxl_wb_.getSyncReadData(handler_index_read_volt_, servo_channels_, servo_N_, dxl_voltages_,  &log_);
         for (uint8_t servo_idx = 0; servo_idx < servo_N_; servo_idx++) {
             rad_positions_ [servo_idx] = (double) dxl_positions_ [servo_idx]*(2.0*DXL_PI)/(MAX_POSITION-MIN_POSITION);
             rad_velocities_[servo_idx] = (double) dxl_velocities_[servo_idx]*0.229*(2.0*DXL_PI/60.0);
             rad_efforts_   [servo_idx] = (double) dxl_efforts_   [servo_idx]; 
+            rad_voltages_  [servo_idx] = (double) dxl_voltages_  [servo_idx]*0.1;       // XL430 output 0.1V unit
             // see: src/my_robot_description/urdf/cubic_doggo.ros2_control.xacro
             set_state(joint_names[servo_idx]+"/position", rad_positions_ [servo_idx]);
             set_state(joint_names[servo_idx]+"/velocity", rad_velocities_[servo_idx]);
             set_state(joint_names[servo_idx]+"/effort",   rad_efforts_   [servo_idx]);
+            set_state(joint_names[servo_idx]+"/voltage",  rad_voltages_  [servo_idx]);
         }
 
         return hardware_interface::return_type::OK;
@@ -198,8 +202,6 @@ namespace cubic_doggo_namespace {
         if (blink_per < (time - last_blink_timestamp_).seconds()) {           //blinking when low voltage
             last_blink_timestamp_ = time;
             led_blink_state_      = !led_blink_state_;
-            dxl_wb_.syncRead(handler_index_read_volt_, servo_channels_, servo_N_, &log_);
-            dxl_wb_.getSyncReadData(handler_index_read_volt_, servo_channels_, servo_N_, dxl_voltages_, &log_);
             for (uint8_t i = 0; i < servo_N_; i++) {
                 if ((0 < dxl_voltages_[i]) && (dxl_voltages_[i] < VOLTAGE_THRESHOLD)) {
                     dxl_leds_[i] = led_blink_state_ ? 1 : 0;
@@ -216,12 +218,15 @@ namespace cubic_doggo_namespace {
     }
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     void HardwareInterfaceU2D2_cubic_doggo::initialize_servo_(uint8_t servo_id) {
-        rad_positions_[servo_id] = rad_positions_init_[servo_id];
-        dxl_positions_[servo_id] = (int32_t)(rad_positions_[servo_id]*(MAX_POSITION-MIN_POSITION)/(2.0*DXL_PI));
+        rad_positions_[servo_id]  = rad_positions_init_[servo_id];
+        dxl_positions_[servo_id]  = (int32_t)(rad_positions_[servo_id]*(MAX_POSITION-MIN_POSITION)/(2.0*DXL_PI));
         rad_velocities_[servo_id] = 0.0;
         dxl_velocities_[servo_id] = 0;
-        rad_efforts_[servo_id] = 0.0;
-        dxl_efforts_[servo_id] = 0;
+        rad_efforts_[servo_id]    = 0.0;
+        dxl_efforts_[servo_id]    = 0;
+        rad_voltages_[servo_id]   = 0.0;
+        dxl_voltages_[servo_id]   = 0;
+        dxl_leds_    [servo_id]   = 0;    
     }
 }
 #include "pluginlib/class_list_macros.hpp"

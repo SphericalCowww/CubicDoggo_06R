@@ -28,6 +28,9 @@
             <state_interface name="effort">
               <param name="initial_value">0.0</param>
             </state_interface>
+            <state_interface name="voltage">
+              <param name="initial_value">0.0</param>
+            </state_interface>
         </joint>
         <joint name="servo2_servo2_padding_FL">
             <command_interface name="position"/>
@@ -38,6 +41,9 @@
               <param name="initial_value">0.0</param>
             </state_interface>
             <state_interface name="effort">
+              <param name="initial_value">0.0</param>
+            </state_interface>
+            <state_interface name="voltage">
               <param name="initial_value">0.0</param>
             </state_interface>
         </joint>
@@ -52,6 +58,9 @@
             <state_interface name="effort">
               <param name="initial_value">0.0</param>
             </state_interface>
+            <state_interface name="voltage">
+              <param name="initial_value">0.0</param>
+            </state_interface>
         </joint>
         <joint name="servo1_servo1_padding_FR">
             <command_interface name="position"/>
@@ -62,6 +71,9 @@
               <param name="initial_value">0.0</param>
             </state_interface>
             <state_interface name="effort">
+              <param name="initial_value">0.0</param>
+            </state_interface>
+            <state_interface name="voltage">
               <param name="initial_value">0.0</param>
             </state_interface>
         </joint>
@@ -76,6 +88,9 @@
             <state_interface name="effort">
               <param name="initial_value">0.0</param>
             </state_interface>
+            <state_interface name="voltage">
+              <param name="initial_value">0.0</param>
+            </state_interface>
         </joint>
         <joint name="servo3_calfFeet_FR">
             <command_interface name="position"/>
@@ -86,6 +101,9 @@
               <param name="initial_value">0.0</param>
             </state_interface>
             <state_interface name="effort">
+              <param name="initial_value">0.0</param>
+            </state_interface>
+            <state_interface name="voltage">
               <param name="initial_value">0.0</param>
             </state_interface>
         </joint>
@@ -100,6 +118,9 @@
             <state_interface name="effort">
               <param name="initial_value">0.0</param>
             </state_interface>
+            <state_interface name="voltage">
+              <param name="initial_value">0.0</param>
+            </state_interface>
         </joint>
         <joint name="servo2_servo2_padding_BL">
             <command_interface name="position"/>
@@ -110,6 +131,9 @@
               <param name="initial_value">0.0</param>
             </state_interface>
             <state_interface name="effort">
+              <param name="initial_value">0.0</param>
+            </state_interface>
+            <state_interface name="voltage">
               <param name="initial_value">0.0</param>
             </state_interface>
         </joint>
@@ -124,6 +148,9 @@
             <state_interface name="effort">
               <param name="initial_value">0.0</param>
             </state_interface>
+            <state_interface name="voltage">
+              <param name="initial_value">0.0</param>
+            </state_interface>
         </joint>
         <joint name="servo1_servo1_padding_BR">
             <command_interface name="position"/>
@@ -134,6 +161,9 @@
               <param name="initial_value">0.0</param>
             </state_interface>
             <state_interface name="effort">
+              <param name="initial_value">0.0</param>
+            </state_interface>
+            <state_interface name="voltage">
               <param name="initial_value">0.0</param>
             </state_interface>
         </joint>
@@ -148,6 +178,9 @@
             <state_interface name="effort">
               <param name="initial_value">0.0</param>
             </state_interface>
+            <state_interface name="voltage">
+              <param name="initial_value">0.0</param>
+            </state_interface>
         </joint>
         <joint name="servo3_calfFeet_BR">
             <command_interface name="position"/>
@@ -158,6 +191,9 @@
               <param name="initial_value">0.0</param>
             </state_interface>
             <state_interface name="effort">
+              <param name="initial_value">0.0</param>
+            </state_interface>
+            <state_interface name="voltage">
               <param name="initial_value">0.0</param>
             </state_interface>
         </joint>
