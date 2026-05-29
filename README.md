@@ -56,6 +56,18 @@ To test BNO055 with ROS:
     ros2 topic echo /imu/euler              # show IMU content
     ros2 topic hz /imu/euler                # show IMU read speed
 
+### Checking RaspPi power
+
+    for d in /sys/class/hwmon/hwmon*; do echo -n "$d: "; cat "$d/name"; done   # find the correct path for power alarm
+    # update /home/cubicdoggo/Documents/CubicDoggo/src/my_robot_bringup/launch/cubic_doggo.with_lifecycle.launch.py
+    echo timer | sudo tee /sys/class/leds/ACT/trigger                          # trigger LED first
+    sudo chmod -R 777 /sys/class/leds/ACT/                                     # enable LED to indicate battery condition
+    sudo chmod -R 777 /sys/class/hwmon/hwmon*/                                 # enable reading of power alarm/voltage
+    # test the node 
+    echo 0 > /tmp/fake_alarm                                                   # create a fake alarm by
+    ros2 run my_robot_peripheral rasp_pi_peripheral_node --ros-args -p alarm_path:=/tmp/fake_alarm
+    echo 1 > /tmp/fake_alarm                                                   # create a fake alarm by
+
 ## Tracking the variables
 
 ### Reading out variables from ROS
