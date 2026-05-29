@@ -29,3 +29,7 @@ moveit_setup_assistant_config:
       - position
       - velocity
       - effort
+
+
+
+

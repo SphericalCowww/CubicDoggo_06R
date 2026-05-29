@@ -176,7 +176,7 @@ namespace cubic_doggo_namespace {
             set_state(joint_names[servo_idx]+"/position", rad_positions_ [servo_idx]);
             set_state(joint_names[servo_idx]+"/velocity", rad_velocities_[servo_idx]);
             set_state(joint_names[servo_idx]+"/effort",   rad_efforts_   [servo_idx]);
-            set_state(joint_names[servo_idx]+"/voltage",  rad_voltages_  [servo_idx]);
+            //set_state(joint_names[servo_idx]+"/voltage",  rad_voltages_  [servo_idx]);  // NA for joint_state
         }
 
         return hardware_interface::return_type::OK;
