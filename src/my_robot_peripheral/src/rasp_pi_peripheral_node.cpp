@@ -15,14 +15,14 @@ public:
         std::string power_path = this->get_parameter("power_path").as_string();
         std::string led_path   = this->get_parameter("led_path").as_string();
         is_rasp_pi_ = std::filesystem::exists(led_path);
-        if (is_rasp_pi_) {
+        if (is_valid() == true) {
             RCLCPP_INFO(get_logger(), "RapsPiPeripheralNode:constructor(): raspberry pi "
                                       "power alarm peripheral detected at %s, led peripherial detected at %s", 
                                       power_path.c_str(), led_path.c_str());
         } else {
             RCLCPP_WARN(get_logger(), "RapsPiPeripheralNode:constructor(): not on a raspberry pi (or no LED access)");
         }
-        
+        volt_pub_ = this->create_publisher<example_interfaces::msg::Float64>("pi/voltage", 10);
         timer_ = this->create_wall_timer(std::chrono::seconds(1), 
                                          std::bind(&RapsPiPeripheralNode::checkHardwarePower, this));
     }
@@ -32,14 +32,13 @@ public:
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 private:
     void checkHardwarePower() {
-        if (!is_rasp_pi_) return;
+        if (is_rasp_pi_ == false) return;
 
         std::string power_path = this->get_parameter("power_path").as_string();
         std::ifstream power_file(power_path);
         if (power_file.is_open()) {
             int power_alarm;
             power_file >> power_alarm;
-
             if (power_alarm == 1) {
                 RCLCPP_ERROR_THROTTLE(get_logger(), *get_clock(),  5000, "RapsPiPeripheralNode:checkHardwarePower(): "
                                       "HARDWARE LOW POWER, TIME TO CHARGE BATTERY");
@@ -48,6 +47,16 @@ private:
                 RCLCPP_INFO(get_logger(), "RapsPiPeripheralNode:checkHardwarePower(): hardware power normal");
                 setLedTrigger("none");
             }
+        }
+
+        std::ifstream volt_file(power_dir + "in0_input");
+        if (volt_file.is_open()) {
+            double volt_mv;
+            volt_file >> volt_mv;
+            
+            auto volt_msg = example_interfaces::msg::Float64();
+            volt_msg.data = volt_mv / 1000.0;                        // to volt
+            volt_pub_->publish(volt_msg);
         }
     }
     void setLedTrigger(const std::string &trigger) {
@@ -73,9 +82,10 @@ private:
         }
     }
 
-    bool                         is_rasp_pi_;
-    std::string                  current_trigger_;
-    rclcpp::TimerBase::SharedPtr timer_;
+    bool        is_rasp_pi_ = false;
+    std::string current_trigger_;
+    rclcpp::Publisher<example_interfaces::msg::Float64>::SharedPtr volt_pub_;
+    rclcpp::TimerBase::SharedPtr                                   timer_;
 };
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

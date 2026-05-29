@@ -18,9 +18,9 @@ public:
         this->declare_parameter("address",   0x28);
         this->declare_parameter("reset_pin", "17");
 
-        if (setup_hardware()) {
+        if (setup_hardware() == true) {
             RCLCPP_INFO(get_logger(), "IMUBNO055Node(): Connection established and sensor initialized.");
-            publisher_ = this->create_publisher<geometry_msgs::msg::Vector3>("imu/euler", 10);
+            imu_pub_ = this->create_publisher<geometry_msgs::msg::Vector3>("imu/euler", 10);
             timer_ = this->create_wall_timer(
                 std::chrono::milliseconds(100), 
                 std::bind(&IMUBNO055Node::read_and_publish, this)
@@ -33,8 +33,8 @@ public:
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 private:
     bool setup_hardware() {
-        std::string i2c_bus = this->get_parameter("i2c_bus").as_string();
-        int address = this->get_parameter("address").as_int();
+        std::string i2c_bus   = this->get_parameter("i2c_bus").as_string();
+        int address           = this->get_parameter("address").as_int();
         std::string reset_pin = this->get_parameter("reset_pin").as_string();
 
         auto gpio_write = [&](const std::string& path, const std::string& val) {
@@ -78,7 +78,6 @@ private:
             RCLCPP_ERROR(get_logger(), "IMUBNO055Node():setup_hardware(): Failed to set NDOF mode");
             return false;
         }
-        
         return true;
     }
 
@@ -94,17 +93,17 @@ private:
         int16_t r_raw = (data[3] << 8) | data[2];
         int16_t p_raw = (data[5] << 8) | data[4];
 
-        auto msg = geometry_msgs::msg::Vector3();
-        msg.z = static_cast<double>(h_raw) / 16.0; // Heading
-        msg.x = static_cast<double>(r_raw) / 16.0; // Roll
-        msg.y = static_cast<double>(p_raw) / 16.0; // Pitch
+        auto imu_msg = geometry_msgs::msg::Vector3();
+        imu_msg.z = static_cast<double>(h_raw) / 16.0; // Heading
+        imu_msg.x = static_cast<double>(r_raw) / 16.0; // Roll
+        imu_msg.y = static_cast<double>(p_raw) / 16.0; // Pitch
 
-        publisher_->publish(msg);
+        imu_pub_->publish(imu_msg);
     }
 
     int i2c_fd_ = -1;
-    rclcpp::Publisher<geometry_msgs::msg::Vector3>::SharedPtr publisher_;
-    rclcpp::TimerBase::SharedPtr timer_;
+    rclcpp::Publisher<geometry_msgs::msg::Vector3>::SharedPtr imu_pub_;
+    rclcpp::TimerBase::SharedPtr                              timer_;
 };
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
