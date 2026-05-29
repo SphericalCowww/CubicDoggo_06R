@@ -70,12 +70,15 @@ To test BNO055 with ROS:
 
 ## Tracking the variables
 
-### Reading out variables from ROS
+Run the robot first:
 
     cd CubicDoggo
     colcon build
     source install/setup.bash
     ros2 launch my_robot_bringup my_robot.with_lifecycle.launch.py
+
+### Reading out variables from ROS
+
     # on another terminal for joint states
     ros2 topic echo /joint_states
     # on another terminal for IMU
@@ -85,6 +88,7 @@ To test BNO055 with ROS:
 
 To track the values (remember to connect the RaspPi to a monitor):
 
+    # on another terminal for plotjuggler
     sudo apt install ros-jazzy-plotjuggler-ros
     ros2 run plotjuggler plotjuggler
     # start => locate the following
