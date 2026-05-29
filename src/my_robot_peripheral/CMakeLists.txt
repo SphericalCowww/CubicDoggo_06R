@@ -9,12 +9,13 @@ endif()
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(geometry_msgs REQUIRED)
+find_package(sensor_msgs REQUIRED)
 find_package(example_interfaces REQUIRED)
 find_package(my_robot_interface REQUIRED)
 
 ###########################################################################
 add_executable(imu_bno055_node src/imu_bno055_node.cpp)
-ament_target_dependencies(imu_bno055_node rclcpp geometry_msgs example_interfaces my_robot_interface)
+ament_target_dependencies(imu_bno055_node rclcpp geometry_msgs sensor_msgs example_interfaces my_robot_interface)
 
 add_executable(rasp_pi_peripheral_node src/rasp_pi_peripheral_node.cpp)
 ament_target_dependencies(rasp_pi_peripheral_node rclcpp example_interfaces my_robot_interface)
