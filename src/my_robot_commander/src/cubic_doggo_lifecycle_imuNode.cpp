@@ -144,8 +144,8 @@ public:
 
         imu_subscriber_ = create_subscription<geometry_msgs::msg::Vector3>(
             "imu/euler", 10, [this](const geometry_msgs::msg::Vector3::SharedPtr msg) {
-            current_pitch_ = msg->y;
-            current_roll_  = msg->x;
+            current_pitch_ = msg->y;            // + when tilting forwards 
+            current_roll_  = msg->x;            // + when tilting leftwards 
         });
 
         keep_running_thread_ = true;
@@ -451,14 +451,13 @@ private:
             imu_z_corr_[2] =  pitch_error*pitch_kP - roll_error*roll_kP;
             imu_z_corr_[3] =  pitch_error*pitch_kP + roll_error*roll_kP;
 
+            std::vector<moveit::core::RobotStatePtr> gait_waypoints;
             if (is_walking_ == true) { 
                 x_stride = target_x_stride_*x_stride_max;
                 y_stride = target_y_stride_*y_stride_max;
-                std::vector<moveit::core::RobotStatePtr> gait_waypoints = sineWalkGait_(
-                    10, swing_fraction, lift, x_stride, y_stride, x_shift, y_shift);
+                gait_waypoints = sineWalkGait_(waypoint_N, swing_fraction, lift, x_stride, y_stride, x_shift,y_shift);
             } else {
-                std::vector<moveit::core::RobotStatePtr> gait_waypoints = sineWalkGait_(
-                    waypoint_N, swing_fraction, 0.0, 0.0, 0.0, 0.0, 0.0);
+                gait_waypoints = sineWalkGait_(10, swing_fraction, 0.0, 0.0, 0.0, 0.0, 0.0);
             }
             if (gait_waypoints.empty()) {
                 RCLCPP_WARN(get_logger(), "CubicDoggoLifecycleManager:controlLoop_(): "
