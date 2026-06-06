@@ -41,6 +41,8 @@ using ros_bool          = example_interfaces::msg::Bool;
 
 const double DEFAULT_VEL_SCALE = 0.2;
 const double DEFAULT_ACC_SCALE = 0.05;
+
+#include "my_robot_commander/pid_controller.hpp"
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 class CubicDoggoLifecycleManager : public rclcpp_lifecycle::LifecycleNode {
 public:
@@ -409,8 +411,8 @@ private:
         response->message = is_walking_ ? "walking started" : "walking stopped";
     }
     void controlLoop_() {
-        double pitch_kP = 0.0005;                   // for IMU pitch balancing
-        double roll_kP  = 0.0005;                   // for IMU roll balancing
+        cubic_doggo_utils::PIDController pitch_pid{0.0005, 0.0, 0.0, 0.03}; // PID pars for IMU pitch balancing
+        cubic_doggo_utils::PIDController roll_pid {0.0005, 0.0, 0.0, 0.03}; // PID pars for IMU roll  balancing
 
         auto loop_rate = rclcpp::WallRate(10);          // loop buffer (Hz),                        default 10
         double maxVelScale = 1.0, maxAccScale = 1.0;
@@ -425,7 +427,15 @@ private:
         auto joint_model_group = all_legs_robot_model_->getJointModelGroup(all_legs_planning_group_);
         std::vector<std::string> joint_names = joint_model_group->getActiveJointModelNames();
     
+        rclcpp::Time previous_time = this->get_clock()->now();
         while (keep_running_thread_ && rclcpp::ok()) {
+            rclcpp::Time current_time = this->get_clock()->now();
+            double delta_t = (current_time - previous_time).seconds();            
+            if (delta_t <= 0.0) {
+                delta_t = 0.1;
+            }
+            previous_time = current_time;
+
             if ((is_walking_ == false) && (idle_name_ != "stand")) {
                 x_stride = 0.0, y_stride = 0.0;
                 control_initialized_ = false;
@@ -443,13 +453,13 @@ private:
                 }
                 RCLCPP_INFO(get_logger(), "CubicDoggoLifecycleManager:controlLoop_(): home positions captured.");
             }
-
-            double pitch_error = current_pitch_.load(); 
-            double roll_error  = current_roll_.load();
-            imu_z_corr_[0] = -pitch_error*pitch_kP - roll_error*roll_kP;
-            imu_z_corr_[1] = -pitch_error*pitch_kP + roll_error*roll_kP;
-            imu_z_corr_[2] =  pitch_error*pitch_kP - roll_error*roll_kP;
-            imu_z_corr_[3] =  pitch_error*pitch_kP + roll_error*roll_kP;
+    
+            double pitch_corr = pitch_pid.update(current_pitch_.load(), delta_t);
+            double roll_corr  = roll_pid .update(current_roll_.load(),  delta_t);
+            imu_z_corr_[0] = -pitch_corr - roll_corr;
+            imu_z_corr_[1] = -pitch_corr + roll_corr;
+            imu_z_corr_[2] =  pitch_corr - roll_corr;
+            imu_z_corr_[3] =  pitch_corr + roll_corr;
 
             std::vector<moveit::core::RobotStatePtr> gait_waypoints;
             if (is_walking_ == true) { 
