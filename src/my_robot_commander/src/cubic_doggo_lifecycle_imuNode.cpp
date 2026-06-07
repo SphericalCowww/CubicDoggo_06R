@@ -377,17 +377,17 @@ private:
                 leg_pose.position.y = target_y;
                 leg_pose.position.z = target_z;
 
+                kinematics::KinematicsQueryOptions kinematics_options;
+                kinematics_options.return_approximate_solution = true;
                 auto leg_model_group = all_legs_robot_model_->getJointModelGroup(planning_group_[legIdx]);
-                success_ = walk_state->setFromIK(leg_model_group, leg_pose, endEffector_link_[legIdx]);
+                success_ = walk_state->setFromIK(leg_model_group, leg_pose, endEffector_link_[legIdx], 
+                                                 0.0, nullptr, kinematics_options);
                 if (success_ == false) {
                     RCLCPP_ERROR(get_logger(), "CubicDoggoLifecycleManager:sineWalkGait_(): "
                                                "IK failed for leg %zu at waypoint %d", legIdx, wp);
                     is_walking_ = false;
                     return {};
                 }
-            }
-            if (is_walking_ == false) {
-                break;
             }
             gait_waypoints.push_back(walk_state);
             last_walk_state_ = walk_state;
@@ -479,7 +479,7 @@ private:
                 y_stride = target_y_stride_*y_stride_max;
                 gait_waypoints = sineWalkGait_(waypoint_N, swing_fraction, lift, x_stride, y_stride, x_shift,y_shift);
             } else {
-                gait_waypoints = sineWalkGait_(50, swing_fraction, 0.0, 0.0, 0.0, 0.0, 0.0);
+                gait_waypoints = sineWalkGait_(10, swing_fraction, 0.0, 0.0, 0.0, 0.0, 0.0);
             }
             if (gait_waypoints.empty()) {
                 RCLCPP_WARN(get_logger(), "CubicDoggoLifecycleManager:controlLoop_(): "
