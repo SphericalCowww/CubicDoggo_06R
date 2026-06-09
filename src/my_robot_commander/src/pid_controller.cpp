@@ -2,12 +2,12 @@
 
 namespace cubic_doggo_utils {
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-PIDController::PIDController(double kp, double ki, double kd, double limit)
-    : kp_(kp), ki_(ki), kd_(kd), limit_(limit) {}
+PIDController::PIDController(double kp, double ki, double kd, double limit, double leak_ratio)
+    : kp_(kp), ki_(ki), kd_(kd), limit_(limit), leak_ratio_(leak_ratio) {}
 
 double PIDController::update(double error, double dt) {
     if (dt <= 0.0) return 0.0;
-    integral_ = 0.98*integral_ + error*dt;              // leaky integrator, 1/20 = 0.98 update step size
+    integral_ = (1.0-leak_ratio_)*integral_ + error*dt;
 
     double p_term = kp_*error;
     double i_term = ki_*integral_;

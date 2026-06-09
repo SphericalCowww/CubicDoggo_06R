@@ -118,9 +118,9 @@ private:
 
         // euler angles (reg 0x1A-0x1F) 
         auto euler_msg = geometry_msgs::msg::Vector3();
-        euler_msg.z = static_cast<int16_t>(data[19] << 8 | data[18]) / 16.0; // Heading
         euler_msg.x = static_cast<int16_t>(data[21] << 8 | data[20]) / 16.0; // Roll
         euler_msg.y = static_cast<int16_t>(data[23] << 8 | data[22]) / 16.0; // Pitch
+        euler_msg.z = static_cast<int16_t>(data[19] << 8 | data[18]) / 16.0; // Heading
 
         imu_pub_->publish(imu_msg);
         euler_pub_->publish(euler_msg);

@@ -329,7 +329,14 @@ private:
             for (std::size_t legIdx = 0; legIdx < legN; legIdx++) {
                 double target_x = home_x_[legIdx];
                 double target_y = home_y_[legIdx];
-                double target_z = home_z_[legIdx] + imu_z_corr_[legIdx];
+                double target_z = home_z_[legIdx];
+
+                //IMU Correction//////////////////////////////////////////////////////////////////////////////////////
+                if (is_walking_ == false) {
+                    target_z -= imu_z_corr_[legIdx];
+                }
+                //////////////////////////////////////////////////////////////////////////////////////////////////////
+
                 bool is_group_a = ((legIdx == 0) || (legIdx == 3));
                 bool is_group_b = ((legIdx == 1) || (legIdx == 2));
                 bool is_group_backLeg = (legIdx == 2 || legIdx == 3);
@@ -413,22 +420,22 @@ private:
         response->message = is_walking_ ? "walking started" : "walking stopped";
     }
     void controlLoop_() {
-        cubic_doggo_utils::PIDController pitch_pid{0.0005, 0.0, 0.0, 0.03}; // PID pars for IMU pitch balancing
-        cubic_doggo_utils::PIDController roll_pid {0.0005, 0.0, 0.0, 0.03}; // PID pars for IMU roll  balancing
+        cubic_doggo_utils::PIDController pitch_pid{0.0012, 0.001, 0.00001, 0.03, 0.001}; // PID pars for pitch
+        cubic_doggo_utils::PIDController roll_pid {0.0012, 0.001, 0.00001, 0.03, 0.001}; // PID pars for roll
 
-        auto loop_rate = rclcpp::WallRate(10);          // loop buffer (Hz),                        default 10
+        auto loop_rate = rclcpp::WallRate(100);         // loop buffer (Hz),                        default 100
         double maxVelScale = 1.0, maxAccScale = 1.0;
         int    waypoint_N     = 100;                    // number of waypoints for each cycle,      default 100
         double waypoint_dt    = 0.01;                   // second for each waypoint,                default 0.01
         double IK_bufferTime  = 0.10;                   // time at end of cycle buffer for IK calc, default 0.10
         double swing_fraction = 0.50;                   // creep < 0.25 < stable trot < 0.5 < trot
-        double lift = 0.02, x_stride_max = 0.02, y_stride_max = 0.025, x_shift = 0.0, y_shift = 0.0;
-        double x_stride = 0.0, y_stride = 0.0;
+        double lift = 0.02, x_stride_max = 0.02, y_stride_max = 0.025, x_shift = 0.008, y_shift = -0.01;
 
         all_legs_robot_model_ = all_legs_interface_->getRobotModel();
         auto joint_model_group = all_legs_robot_model_->getJointModelGroup(all_legs_planning_group_);
         std::vector<std::string> joint_names = joint_model_group->getActiveJointModelNames();
-    
+
+        double x_stride = 0.0, y_stride = 0.0;    
         rclcpp::Time previous_time = this->get_clock()->now();
         while (keep_running_thread_ && rclcpp::ok()) {
             rclcpp::Time current_time = this->get_clock()->now();
@@ -464,7 +471,7 @@ private:
             double current_roll  = current_roll_.load();
             double pitch_corr = pitch_pid.update(current_pitch, delta_t);
             double roll_corr  = roll_pid .update(current_roll,  delta_t);
-            imu_z_corr_[0] = -pitch_corr - roll_corr;
+            imu_z_corr_[0] = -pitch_corr - roll_corr;                           //NOTE: watch out for direction!!!
             imu_z_corr_[1] = -pitch_corr + roll_corr;
             imu_z_corr_[2] =  pitch_corr - roll_corr;
             imu_z_corr_[3] =  pitch_corr + roll_corr;
