@@ -12,6 +12,7 @@ find_package(moveit_ros_planning_interface REQUIRED)
 find_package(moveit_core REQUIRED)
 find_package(example_interfaces REQUIRED)
 find_package(my_robot_interface REQUIRED)
+find_package(control_toolbox REQUIRED)
 
 include_directories(include)
 
@@ -22,7 +23,7 @@ ament_target_dependencies(cubic_doggo_lifecycle rclcpp moveit_ros_planning_inter
 add_executable(cubic_doggo_lifecycle_imuNode 
     src/cubic_doggo_lifecycle_imuNode.cpp
     src/pid_controller.cpp)
-ament_target_dependencies(cubic_doggo_lifecycle_imuNode rclcpp moveit_ros_planning_interface moveit_core example_interfaces my_robot_interface)
+ament_target_dependencies(cubic_doggo_lifecycle_imuNode rclcpp moveit_ros_planning_interface moveit_core example_interfaces my_robot_interface control_toolbox)
 
 install(TARGETS cubic_doggo_lifecycle cubic_doggo_lifecycle_imuNode
   DESTINATION lib/${PROJECT_NAME}

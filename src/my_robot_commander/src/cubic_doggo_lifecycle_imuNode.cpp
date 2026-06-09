@@ -42,7 +42,9 @@ using ros_bool          = example_interfaces::msg::Bool;
 const double DEFAULT_VEL_SCALE = 0.2;
 const double DEFAULT_ACC_SCALE = 0.05;
 
-#include "my_robot_commander/pid_controller.hpp"
+//#include "my_robot_commander/pid_controller.hpp"
+#include <control_toolbox/pid.hpp>
+
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 class CubicDoggoLifecycleManager : public rclcpp_lifecycle::LifecycleNode {
 public:
@@ -420,8 +422,16 @@ private:
         response->message = is_walking_ ? "walking started" : "walking stopped";
     }
     void controlLoop_() {
-        cubic_doggo_utils::PIDController pitch_pid{0.0012, 0.001, 0.00001, 0.03, 0.001}; // PID pars for pitch
-        cubic_doggo_utils::PIDController roll_pid {0.0012, 0.001, 0.00001, 0.03, 0.001}; // PID pars for roll
+        //cubic_doggo_utils::PIDController pitch_pid{0.0012, 0.001, 0.00001, 0.03, 0.001}; // PID pars for pitch
+        //cubic_doggo_utils::PIDController roll_pid {0.0012, 0.001, 0.00001, 0.03, 0.001}; // PID pars for roll
+        // https://docs.ros.org/en/jazzy/p/control_toolbox/generated/structcontrol__toolbox_1_1AntiWindupStrategy.html
+        control_toolbox::Pid pitch_pid, roll_pid;
+        control_toolbox::AntiWindupStrategy aw_strat;
+        aw_strat.type = control_toolbox::AntiWindupStrategy::CONDITIONAL_INTEGRATION;
+        aw_strat.i_max = 0.02;
+        aw_strat.i_min = -0.02;
+        pitch_pid.set_gains(0.0015, 0.001, 0.00005, 0.02, -0.02, aw_strat);
+        roll_pid .set_gains(0.0015, 0.001, 0.00005, 0.02, -0.02, aw_strat);
 
         auto loop_rate = rclcpp::WallRate(100);         // loop buffer (Hz),                        default 100
         double maxVelScale = 1.0, maxAccScale = 1.0;
@@ -443,6 +453,7 @@ private:
             if (delta_t <= 0.0) {
                 delta_t = 0.1;
             }
+
             previous_time = current_time;
             RCLCPP_INFO(get_logger(), "CubicDoggoLifecycleManager:controlLoop_(): "
                                       "is_walking_ = %d, control_initialized_ = %d, idle_name_ = %s", 
@@ -469,8 +480,10 @@ private:
         
             double current_pitch = current_pitch_.load();
             double current_roll  = current_roll_.load();
-            double pitch_corr = pitch_pid.update(current_pitch, delta_t);
-            double roll_corr  = roll_pid .update(current_roll,  delta_t);
+            //double pitch_corr = pitch_pid.update(current_pitch, delta_t);
+            //double roll_corr  = roll_pid .update(current_roll,  delta_t);
+            double pitch_corr = pitch_pid.compute_command(current_pitch, delta_t);
+            double roll_corr  = roll_pid .compute_command(current_roll,  delta_t);
             imu_z_corr_[0] = -pitch_corr - roll_corr;                           //NOTE: watch out for direction!!!
             imu_z_corr_[1] = -pitch_corr + roll_corr;
             imu_z_corr_[2] =  pitch_corr - roll_corr;
