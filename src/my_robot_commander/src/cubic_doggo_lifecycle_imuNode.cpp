@@ -430,8 +430,8 @@ private:
         aw_strat.type = control_toolbox::AntiWindupStrategy::CONDITIONAL_INTEGRATION;
         aw_strat.i_max = 0.02;
         aw_strat.i_min = -0.02;
-        pitch_pid.set_gains(0.0015, 0.001, 0.00005, 0.02, -0.02, aw_strat);
-        roll_pid .set_gains(0.0015, 0.001, 0.00005, 0.02, -0.02, aw_strat);
+        pitch_pid.set_gains(0.0015, 0.001, 0.00005, 0.03, -0.03, aw_strat);
+        roll_pid .set_gains(0.0015, 0.001, 0.00005, 0.03, -0.03, aw_strat);
 
         auto loop_rate = rclcpp::WallRate(100);         // loop buffer (Hz),                        default 100
         double maxVelScale = 1.0, maxAccScale = 1.0;
