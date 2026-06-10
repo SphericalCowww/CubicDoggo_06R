@@ -191,6 +191,12 @@ Check out all the gait options under ``CubicDoggo_06R/src/my_robot_commander/src
     # journalctl -u robot_startup.service -n 100 > start_robot_output.txt      # to check the output
     # journalctl -u robot_startup.service -f
 
+### IMU balancing
+
+Standing up and then changing to a slope. Unstable IMU with lots of oscillations:
+
+<img src="https://github.com/SphericalCowww/CubicDoggo_06R/blob/main/plotjuggler_standThenSlope.png" width="1000">
+
 ## References:
 - ROS1 Packages for CHAMP Quadruped Controller (<a href="https://github.com/chvmp/champ">GitHub</a>) => node based IMU control with classical walk gait
 - Spot Micro (<a href="https://github.com/mike4192/spotMicro">GitHub</a>, <a href="https://spotmicroai.readthedocs.io/en/latest/">link</a>) => node based IMU control with classical walk gait
