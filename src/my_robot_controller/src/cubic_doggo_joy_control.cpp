@@ -29,10 +29,10 @@ private:
             prev_buttons_.resize(msg->buttons.size(), 0);
         }
         if (msg->buttons.size() > 3) {
-            if (msg->buttons[3] == 1 && prev_buttons_[3] == 0) {
+            if (msg->buttons[2] == 1 && prev_buttons_[2] == 0) {
                 send_pose_("stand");
             }
-            if (msg->buttons[2] == 1 && prev_buttons_[2] == 0) {
+            if (msg->buttons[3] == 1 && prev_buttons_[3] == 0) {
                 send_pose_("sit");
             }
             if (msg->buttons[1] == 1 && prev_buttons_[1] == 0) {

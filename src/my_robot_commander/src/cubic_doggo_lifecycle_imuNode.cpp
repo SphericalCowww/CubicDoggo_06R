@@ -428,10 +428,12 @@ private:
         control_toolbox::Pid pitch_pid, roll_pid;
         control_toolbox::AntiWindupStrategy aw_strat;
         aw_strat.type = control_toolbox::AntiWindupStrategy::CONDITIONAL_INTEGRATION;
-        aw_strat.i_max = 0.02;
+        aw_strat.i_max =  0.02;
         aw_strat.i_min = -0.02;
         pitch_pid.set_gains(0.0015, 0.001, 0.00005, 0.03, -0.03, aw_strat);
         roll_pid .set_gains(0.0015, 0.001, 0.00005, 0.03, -0.03, aw_strat);
+        double pitch_shift = 3.0, roll_shift = 0.0;     // shift in degrees 
+
 
         auto loop_rate = rclcpp::WallRate(100);         // loop buffer (Hz),                        default 100
         double maxVelScale = 1.0, maxAccScale = 1.0;
@@ -478,8 +480,8 @@ private:
                 RCLCPP_INFO(get_logger(), "CubicDoggoLifecycleManager:controlLoop_(): home positions captured.");
             }
         
-            double current_pitch = current_pitch_.load();
-            double current_roll  = current_roll_.load();
+            double current_pitch = current_pitch_.load() - pitch_shift;
+            double current_roll  = current_roll_.load()  - roll_shift;
             //double pitch_corr = pitch_pid.update(current_pitch, delta_t);
             //double roll_corr  = roll_pid .update(current_roll,  delta_t);
             double pitch_corr = pitch_pid.compute_command(current_pitch, delta_t);

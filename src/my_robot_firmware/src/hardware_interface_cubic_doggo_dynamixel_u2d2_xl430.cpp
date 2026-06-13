@@ -179,7 +179,8 @@ namespace cubic_doggo_namespace {
         for (uint8_t servo_idx = 0; servo_idx < servo_N_; servo_idx++) {
             rad_positions_ [servo_idx] = (double) dxl_positions_ [servo_idx]*(2.0*DXL_PI)/(MAX_POSITION-MIN_POSITION);
             rad_velocities_[servo_idx] = (double) dxl_velocities_[servo_idx]*0.229*(2.0*DXL_PI/60.0);
-            rad_efforts_   [servo_idx] = (double) dxl_efforts_   [servo_idx]; 
+            //rad_efforts_   [servo_idx] = (double) dxl_efforts_   [servo_idx];
+            rad_efforts_   [servo_idx] = (double) static_cast<int16_t>(dxl_efforts_[servo_idx]); // for Present_Load 
             rad_voltages_  [servo_idx] = (double) dxl_voltages_  [servo_idx]*0.1;       // XL430 output 0.1V unit
             // see: src/my_robot_description/urdf/cubic_doggo.ros2_control.xacro
             set_state(joint_names[servo_idx]+"/position", rad_positions_ [servo_idx]);
