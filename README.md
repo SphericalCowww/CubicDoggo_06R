@@ -28,8 +28,7 @@ Following <a href="https://cdn-learn.adafruit.com/downloads/pdf/bno055-absolute-
 
 Then do:
 
-    sudo apt update && sudo apt install -y i2c-tools
-    sudo apt update && sudo apt install gpiod -y
+    sudo apt update && sudo apt install -y i2c-tools gpiod libgpiod-dev
     sudo gpiodetect
     sudo gpioset gpiochip4 17=1                                         # enable reset pin
     sudo i2cdetect -y 1                                                 # if 28 lights up, it's alive
