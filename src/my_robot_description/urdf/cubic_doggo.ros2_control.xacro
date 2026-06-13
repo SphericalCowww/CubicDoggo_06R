@@ -4,7 +4,7 @@
         <hardware>
             <!--plugin>mock_components/GenericSystem</plugin-->
             <plugin>cubic_doggo_namespace/HardwareInterfaceU2D2_cubic_doggo</plugin>
-            <param name="usb_port">/dev/ttyU2D2</param>
+            <param name="port_name">/dev/ttyU2D2</param>
             <param name="baud_rate">2000000</param>
             <param name="servo1_channel_FL">11</param>
             <param name="servo2_channel_FL">12</param>

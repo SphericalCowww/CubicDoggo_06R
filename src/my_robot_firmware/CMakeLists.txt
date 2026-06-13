@@ -25,7 +25,7 @@ add_library(cubic_doggo_hardware_interface SHARED
   src/hardware_interface_cubic_doggo_dynamixel_u2d2_xl430.cpp
   src/hardware_interface_imu_bno055.cpp 
 )
-target_link_libraries(cubic_doggo_hardware_interface PUBLIC ${GPIOD_LIBRARIES})
+target_link_libraries(cubic_doggo_hardware_interface ${GPIOD_LIBRARIES})
 ament_target_dependencies(cubic_doggo_hardware_interface rclcpp rclcpp_lifecycle dynamixel_sdk dynamixel_workbench dynamixel_workbench_toolbox hardware_interface pluginlib)
 pluginlib_export_plugin_description_file(hardware_interface cubic_doggo_hardware_interface.xml)
 install(TARGETS cubic_doggo_hardware_interface

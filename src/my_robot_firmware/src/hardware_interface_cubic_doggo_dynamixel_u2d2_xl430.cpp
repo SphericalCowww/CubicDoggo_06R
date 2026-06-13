@@ -15,7 +15,7 @@ namespace cubic_doggo_namespace {
         RCLCPP_INFO(get_logger(), "hardware_interface:on_init()");
 
         try {
-            port_name_ = params.hardware_info.hardware_parameters.at("usb_port");
+            port_name_ = params.hardware_info.hardware_parameters.at("port_name");
             baud_rate_ = std::stoi(params.hardware_info.hardware_parameters.at("baud_rate"));
         } catch (const std::out_of_range& errorMsg) {
             RCLCPP_ERROR(get_logger(), "hardware_interface:on_init(): missing required parameter in URDF");
@@ -23,9 +23,9 @@ namespace cubic_doggo_namespace {
         }
         RCLCPP_INFO(get_logger(), "hardware_interface:on_init(): "
                                   "dynamixel opening port %s at %d baud", port_name_.c_str(), baud_rate_);
-        dxl_return_ = dxl_wb_.init(port_name_, baud_rate_, &log_);
+        dxl_return_ = dxl_wb_.init(port_name_.c_str(), baud_rate_, &log_);
         if (dxl_return_ == false) {
-            RCLCPP_ERROR(get_logger(), "hardware_interface:on_init(): failed to open the port %s!", port_name_);
+            RCLCPP_ERROR(get_logger(), "hardware_interface:on_init(): failed to open the port %s!", port_name_.c_str());
             return hardware_interface::CallbackReturn::ERROR;
         } else {
             RCLCPP_INFO(get_logger(), "hardware_interface:on_init(): initialize with baud rate: %d", baud_rate_);

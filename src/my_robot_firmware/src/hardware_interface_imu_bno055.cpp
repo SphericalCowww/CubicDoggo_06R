@@ -73,7 +73,7 @@ namespace imu_namespace {
         RCLCPP_INFO(get_logger(), "hardware_interface_imu:on_activate()");
        
         uint8_t config[2] = {0x3D, 0x0C}; 
-        if (write(i2c_fd_, config, 2) != 2) {
+        if (::write(i2c_fd_, config, 2) != 2) {
             RCLCPP_ERROR(get_logger(), "hardware_interface_imu:on_activate(): failed to set NDOF mode");
             return CallbackReturn::ERROR;
         }
@@ -87,7 +87,7 @@ namespace imu_namespace {
         RCLCPP_INFO(get_logger(), "hardware_interface_imu:on_deactivate()");
 
         uint8_t config[2] = {0x3D, 0x00};
-        write(i2c_fd_, config, 2);
+        ::write(i2c_fd_, config, 2);
 
         return hardware_interface::CallbackReturn::SUCCESS;
     }
@@ -150,16 +150,9 @@ namespace imu_namespace {
 
         return hardware_interface::return_type::OK;
     }
-    hardware_interface::return_type HardwareInterfaceBNO055_imu::write(
-        const rclcpp::Time & /*time*/, const rclcpp::Duration & /*period*/) 
-    {
-        RCLCPP_DEBUG(get_logger(), "hardware_interface_imu:write(): do nothing. Sensor is read only");
-        return hardware_interface::return_type::OK;
-    }
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    void HardwareInterfaceBNO055_imu::read_block(uint8_t reg, uint8_t *data, int len) {
-    }
 }
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 #include "pluginlib/class_list_macros.hpp"
 PLUGINLIB_EXPORT_CLASS(imu_namespace::HardwareInterfaceBNO055_imu, hardware_interface::SensorInterface)
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

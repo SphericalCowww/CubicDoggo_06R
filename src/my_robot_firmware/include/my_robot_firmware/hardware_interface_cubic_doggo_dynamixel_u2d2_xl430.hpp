@@ -31,7 +31,7 @@ namespace cubic_doggo_namespace {
             virtual ~HardwareInterfaceU2D2_cubic_doggo();
         private:
             std::string port_name_;
-            int baud_rate_;
+            int         baud_rate_;
 
             DynamixelWorkbench dxl_wb_;
             uint16_t model_number_ = 0;
