@@ -6,4 +6,10 @@
             Hardware interface for the base controlling 3 dynamixel xl430 servos using U2D2
         </description>
     </class>
+
+    <class name="imu_namespace/HardwareInterfaceBNO055_imu"
+           type="imu_namespace::HardwareInterfaceBNO055_imu"
+           base_class_type="hardware_interface::SensorInterface">
+        <description>BNO055 IMU Hardware Interface</description>
+    </class>
 </library>

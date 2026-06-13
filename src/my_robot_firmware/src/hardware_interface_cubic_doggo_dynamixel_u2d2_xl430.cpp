@@ -6,21 +6,29 @@
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 namespace cubic_doggo_namespace {
-    hardware_interface::CallbackReturn HardwareInterfaceU2D2_cubic_doggo::on_init
-        (const hardware_interface::HardwareComponentInterfaceParams &params) 
+    hardware_interface::CallbackReturn HardwareInterfaceU2D2_cubic_doggo::on_init(
+        const hardware_interface::HardwareComponentInterfaceParams &params) 
     {
-        if (hardware_interface::SystemInterface::on_init(params) !=
-            hardware_interface::CallbackReturn::SUCCESS) {
+        if (hardware_interface::SystemInterface::on_init(params) != hardware_interface::CallbackReturn::SUCCESS) {
             return hardware_interface::CallbackReturn::ERROR;
         }
         RCLCPP_INFO(get_logger(), "hardware_interface:on_init()");
 
-        dxl_return_ = dxl_wb_.init(PORT_NAME, BAUD_RATE, &log_);
+        try {
+            port_name_ = params.hardware_info.hardware_parameters.at("usb_port");
+            baud_rate_ = std::stoi(params.hardware_info.hardware_parameters.at("baud_rate"));
+        } catch (const std::out_of_range& errorMsg) {
+            RCLCPP_ERROR(get_logger(), "hardware_interface:on_init(): missing required parameter in URDF");
+            return hardware_interface::CallbackReturn::ERROR;
+        }
+        RCLCPP_INFO(get_logger(), "hardware_interface:on_init(): "
+                                  "dynamixel opening port %s at %d baud", port_name_.c_str(), baud_rate_);
+        dxl_return_ = dxl_wb_.init(port_name_, baud_rate_, &log_);
         if (dxl_return_ == false) {
-            RCLCPP_ERROR(get_logger(), "hardware_interface:on_init(): failed to open the port %s!", PORT_NAME);
+            RCLCPP_ERROR(get_logger(), "hardware_interface:on_init(): failed to open the port %s!", port_name_);
             return hardware_interface::CallbackReturn::ERROR;
         } else {
-            RCLCPP_INFO(get_logger(), "hardware_interface:on_init(): initialize with baud rate: %d", BAUD_RATE);
+            RCLCPP_INFO(get_logger(), "hardware_interface:on_init(): initialize with baud rate: %d", baud_rate_);
         } 
 
 
@@ -66,8 +74,8 @@ namespace cubic_doggo_namespace {
 
         return hardware_interface::CallbackReturn::SUCCESS;     
     }
-    hardware_interface::CallbackReturn HardwareInterfaceU2D2_cubic_doggo::on_configure 
-        (const rclcpp_lifecycle::State & previous_state) 
+    hardware_interface::CallbackReturn HardwareInterfaceU2D2_cubic_doggo::on_configure( 
+        const rclcpp_lifecycle::State & previous_state) 
     {
         RCLCPP_INFO(get_logger(), "hardware_interface:on_configure()");
         (void) previous_state;
@@ -105,7 +113,8 @@ namespace cubic_doggo_namespace {
         handler_index_read_pos_ = dxl_wb_.getTheNumberOfSyncReadHandler() - 1;
         dxl_wb_.addSyncReadHandler(servo_channels_[0], "Present_Velocity", &log_);
         handler_index_read_vel_ = dxl_wb_.getTheNumberOfSyncReadHandler() - 1;
-        dxl_wb_.addSyncReadHandler(servo_channels_[0], "Present_Current", &log_);
+        //dxl_wb_.addSyncReadHandler(servo_channels_[0], "Present_Current", &log_);
+        dxl_wb_.addSyncReadHandler(servo_channels_[0], "Present_Load", &log_);
         handler_index_read_eff_ = dxl_wb_.getTheNumberOfSyncReadHandler() - 1;
         dxl_wb_.addSyncWriteHandler(servo_channels_[0], "Goal_Position", &log_);
         handler_index_write_pos_ = dxl_wb_.getTheNumberOfSyncWriteHandler() - 1;
@@ -117,8 +126,8 @@ namespace cubic_doggo_namespace {
 
         return hardware_interface::CallbackReturn::SUCCESS;
     }
-    hardware_interface::CallbackReturn HardwareInterfaceU2D2_cubic_doggo::on_activate  
-        (const rclcpp_lifecycle::State & previous_state) 
+    hardware_interface::CallbackReturn HardwareInterfaceU2D2_cubic_doggo::on_activate(
+        const rclcpp_lifecycle::State & previous_state) 
     {
         RCLCPP_INFO(get_logger(), "hardware_interface:on_activate()");
         (void) previous_state;
@@ -128,24 +137,24 @@ namespace cubic_doggo_namespace {
         for (uint8_t servo_idx = 0; servo_idx < servo_N_; servo_idx++) {
             set_state(joint_names[servo_idx]+"/position", rad_positions_[servo_idx]);
         }
-
         last_blink_timestamp_ = get_clock()->now();
 
         return hardware_interface::CallbackReturn::SUCCESS;
     }
-    hardware_interface::CallbackReturn HardwareInterfaceU2D2_cubic_doggo::on_deactivate
-        (const rclcpp_lifecycle::State & previous_state) 
+    hardware_interface::CallbackReturn HardwareInterfaceU2D2_cubic_doggo::on_deactivate(
+        const rclcpp_lifecycle::State & previous_state) 
     {
         RCLCPP_INFO(get_logger(), "hardware_interface:on_deactivate()");
         (void) previous_state;
+
         for (uint8_t servo_idx = 0; servo_idx < servo_N_; servo_idx++) initialize_servo_(servo_idx);
         dxl_return_ = dxl_wb_.syncWrite(handler_index_write_pos_, servo_channels_, servo_N_, dxl_positions_, 1,&log_);
 
         return hardware_interface::CallbackReturn::SUCCESS;
     }
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    hardware_interface::return_type HardwareInterfaceU2D2_cubic_doggo::read 
-        (const rclcpp::Time & time, const rclcpp::Duration & period) 
+    hardware_interface::return_type HardwareInterfaceU2D2_cubic_doggo::read(
+        const rclcpp::Time & time, const rclcpp::Duration & period) 
     {
         RCLCPP_DEBUG(get_logger(), "hardware_interface:read()");
         (void) period;
@@ -181,8 +190,8 @@ namespace cubic_doggo_namespace {
 
         return hardware_interface::return_type::OK;
     }
-    hardware_interface::return_type HardwareInterfaceU2D2_cubic_doggo::write
-        (const rclcpp::Time & time, const rclcpp::Duration & period) 
+    hardware_interface::return_type HardwareInterfaceU2D2_cubic_doggo::write(
+        const rclcpp::Time & time, const rclcpp::Duration & period) 
     {
         RCLCPP_DEBUG(get_logger(), "hardware_interface:write()");
         (void) period; 
@@ -215,6 +224,12 @@ namespace cubic_doggo_namespace {
         }
 
         return hardware_interface::return_type::OK;
+    }
+    HardwareInterfaceU2D2_cubic_doggo::~HardwareInterfaceU2D2_cubic_doggo()
+    {
+        for (uint8_t i = 0; i < servo_N_; i++) {
+            dxl_wb_.itemWrite(servo_channels_[i], "Torque_Enable", 0, &log_);
+        }
     }
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     void HardwareInterfaceU2D2_cubic_doggo::initialize_servo_(uint8_t servo_id) {

@@ -10,6 +10,9 @@ controller_manager:
     joint_state_broadcaster:
       type: joint_state_broadcaster/JointStateBroadcaster
 
+    imu_broadcaster:
+      type: imu_sensor_broadcaster/ImuSensorBroadcaster
+
 all_legs_controller:
   ros__parameters:
     joints:
@@ -31,4 +34,13 @@ all_legs_controller:
       - position
       - velocity
     allow_nonzero_velocity_at_trajectory_end: true
+
+imu_broadcaster:
+  ros__parameters:
+    sensor_name: "imu_bno055"
+    frame_id: "imu_link"
+
+
+
+
 

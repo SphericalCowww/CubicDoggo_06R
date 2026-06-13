@@ -14,13 +14,18 @@ find_package(dynamixel_workbench_toolbox REQUIRED)
 find_package(rclcpp_lifecycle REQUIRED)
 find_package(hardware_interface REQUIRED)
 find_package(pluginlib REQUIRED)
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(GPIOD REQUIRED libgpiod)
 
 include_directories(include)
+include_directories(include ${GPIOD_INCLUDE_DIRS})
 
 ###########################################################################
 add_library(cubic_doggo_hardware_interface SHARED
   src/hardware_interface_cubic_doggo_dynamixel_u2d2_xl430.cpp
+  src/hardware_interface_imu_bno055.cpp 
 )
+target_link_libraries(cubic_doggo_hardware_interface PUBLIC ${GPIOD_LIBRARIES})
 ament_target_dependencies(cubic_doggo_hardware_interface rclcpp rclcpp_lifecycle dynamixel_sdk dynamixel_workbench dynamixel_workbench_toolbox hardware_interface pluginlib)
 pluginlib_export_plugin_description_file(hardware_interface cubic_doggo_hardware_interface.xml)
 install(TARGETS cubic_doggo_hardware_interface

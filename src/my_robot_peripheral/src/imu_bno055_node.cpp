@@ -88,9 +88,9 @@ private:
         uint8_t reg = 0x08;
         uint8_t data[44]; 
 
-        if (write(i2c_fd_, &reg, 1) != 1) return;
-        if (read(i2c_fd_, data, 44) != 44) {
-            RCLCPP_WARN_THROTTLE(get_logger(), *get_clock(), 1000, "I2C Burst Read Failed");
+        if ((write(i2c_fd_, &reg, 1) != 1) || (read(i2c_fd_, data, 44) != 44)) {
+            RCLCPP_WARN_THROTTLE(get_logger(), *get_clock(), 1000, "IMUBNO055Node():read_and_publish():"
+                                                                   "I2C Burst Read Failed");
             return;
         }
 
@@ -118,9 +118,9 @@ private:
 
         // euler angles (reg 0x1A-0x1F) 
         auto euler_msg = geometry_msgs::msg::Vector3();
-        euler_msg.x = static_cast<int16_t>(data[21] << 8 | data[20]) / 16.0; // Roll
-        euler_msg.y = static_cast<int16_t>(data[23] << 8 | data[22]) / 16.0; // Pitch
-        euler_msg.z = static_cast<int16_t>(data[19] << 8 | data[18]) / 16.0; // Heading
+        euler_msg.x = static_cast<int16_t>(data[21] << 8 | data[20]) / 16.0; // roll
+        euler_msg.y = static_cast<int16_t>(data[23] << 8 | data[22]) / 16.0; // pitch
+        euler_msg.z = static_cast<int16_t>(data[19] << 8 | data[18]) / 16.0; // heading
 
         imu_pub_->publish(imu_msg);
         euler_pub_->publish(euler_msg);

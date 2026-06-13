@@ -94,6 +94,11 @@ def generate_launch_description():
         remappings=[("joy", "/joy")] 
     )
 
+    imu_broadcaster_spawner = Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=["imu_broadcaster"],
+    )
     imu_node = Node(
         package="my_robot_peripheral",
         executable="imu_bno055_node",
@@ -123,6 +128,7 @@ def generate_launch_description():
         #rviz_node,
         joy_driver_node,
         joy_controller_node,
+        #imu_broadcaster_spawner,
         imu_node,
         peripheral_node,
     ]
