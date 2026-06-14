@@ -42,9 +42,8 @@ using ros_bool          = example_interfaces::msg::Bool;
 const double DEFAULT_VEL_SCALE = 0.2;
 const double DEFAULT_ACC_SCALE = 0.05;
 
-//#include "my_robot_commander/pid_controller.hpp"
 #include <control_toolbox/pid.hpp>
-
+#include <sensor_msgs/msg/joint_state.hpp>
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 class CubicDoggoLifecycleManager : public rclcpp_lifecycle::LifecycleNode {
 public:
@@ -146,10 +145,16 @@ public:
         leg_feet_subscriber_  = create_subscription<custom_feet_array>("/leg_set_feet",  10,
             std::bind(&CubicDoggoLifecycleManager::legFeetCallback_,  this, _1), sub_options);
 
-        imu_subscriber_ = create_subscription<geometry_msgs::msg::Vector3>(
-            "imu/euler", 10, [this](const geometry_msgs::msg::Vector3::SharedPtr msg) {
-            current_pitch_ = msg->y;            // + when tilting forwards 
-            current_roll_  = msg->x;            // + when tilting leftwards 
+        joint_state_subscriber_ = create_subscription<sensor_msgs::msg::JointState>(
+            "/joint_states", 10, [this](const sensor_msgs::msg::JointState::SharedPtr msg) {
+            for (size_t i = 0; i < msg->name.size(); ++i) {
+                if (msg->name[i] == "imu_bno055/euler.y") {
+                    current_pitch_ = msg->position[i];      // + when tilting forwards
+                }
+                if (msg->name[i] == "imu_bno055/euler.x") { 
+                    current_roll_ = msg->position[i];       // + when tilting leftwards 
+                }
+            }
         });
 
         keep_running_thread_ = true;
@@ -422,18 +427,16 @@ private:
         response->message = is_walking_ ? "walking started" : "walking stopped";
     }
     void controlLoop_() {
-        //cubic_doggo_utils::PIDController pitch_pid{0.0012, 0.001, 0.00001, 0.03, 0.001}; // PID pars for pitch
-        //cubic_doggo_utils::PIDController roll_pid {0.0012, 0.001, 0.00001, 0.03, 0.001}; // PID pars for roll
+        bool loopInfo = false;
+
         // https://docs.ros.org/en/jazzy/p/control_toolbox/generated/structcontrol__toolbox_1_1AntiWindupStrategy.html
-        control_toolbox::Pid pitch_pid, roll_pid;
         control_toolbox::AntiWindupStrategy aw_strat;
         aw_strat.type = control_toolbox::AntiWindupStrategy::CONDITIONAL_INTEGRATION;
         aw_strat.i_max =  0.02;
         aw_strat.i_min = -0.02;
-        pitch_pid.set_gains(0.0015, 0.001, 0.00005, 0.03, -0.03, aw_strat);
-        roll_pid .set_gains(0.0015, 0.001, 0.00005, 0.03, -0.03, aw_strat);
+        pitch_pid_.set_gains(0.0008, 0.0001, 0.00002, 0.03, -0.03, aw_strat);
+        roll_pid_.set_gains(0.0008, 0.0001, 0.00002, 0.03, -0.03, aw_strat);
         double pitch_shift = 3.0, roll_shift = 0.0;     // shift in degrees 
-
 
         auto loop_rate = rclcpp::WallRate(100);         // loop buffer (Hz),                        default 100
         double maxVelScale = 1.0, maxAccScale = 1.0;
@@ -455,11 +458,13 @@ private:
             if (delta_t <= 0.0) {
                 delta_t = 0.1;
             }
-
+            
             previous_time = current_time;
-            RCLCPP_INFO(get_logger(), "CubicDoggoLifecycleManager:controlLoop_(): "
-                                      "is_walking_ = %d, control_initialized_ = %d, idle_name_ = %s", 
-                                      is_walking_.load(), control_initialized_.load(), idle_name_.c_str());
+            if (loopInfo == true) {
+                RCLCPP_INFO(get_logger(), "CubicDoggoLifecycleManager:controlLoop_(): "
+                                          "is_walking_ = %d, control_initialized_ = %d, idle_name_ = %s", 
+                                          is_walking_.load(), control_initialized_.load(), idle_name_.c_str());
+            }
 
             if ((is_walking_ == false) && (idle_name_ != "stand")) {
                 x_stride = 0.0, y_stride = 0.0;
@@ -485,19 +490,18 @@ private:
         
             double current_pitch = current_pitch_.load() - pitch_shift;
             double current_roll  = current_roll_.load()  - roll_shift;
-            //double pitch_corr = pitch_pid.update(current_pitch, delta_t);
-            //double roll_corr  = roll_pid .update(current_roll,  delta_t);
-            double pitch_corr = pitch_pid.compute_command(current_pitch, delta_t);
-            double roll_corr  = roll_pid .compute_command(current_roll,  delta_t);
+            double pitch_corr = pitch_pid_.compute_command(current_pitch, delta_t);
+            double roll_corr  = roll_pid_ .compute_command(current_roll,  delta_t);
             imu_z_corr_[0] = -pitch_corr - roll_corr;                           //NOTE: watch out for direction!!!
             imu_z_corr_[1] = -pitch_corr + roll_corr;
             imu_z_corr_[2] =  pitch_corr - roll_corr;
             imu_z_corr_[3] =  pitch_corr + roll_corr;
-            RCLCPP_INFO(get_logger(), "CubicDoggoLifecycleManager:controlLoop_(): "
-                                      "pitch = %lf, roll = %lf, imu_z_corr = [%lf, %lf, %lf, %lf]",
-                                      current_pitch, current_roll, 
-                                      imu_z_corr_[0], imu_z_corr_[1], imu_z_corr_[2], imu_z_corr_[3]);
-
+            if (loopInfo == true) {
+                RCLCPP_INFO(get_logger(), "CubicDoggoLifecycleManager:controlLoop_(): "
+                                          "pitch = %lf, roll = %lf, imu_z_corr = [%lf, %lf, %lf, %lf]",
+                                          current_pitch, current_roll, 
+                                          imu_z_corr_[0], imu_z_corr_[1], imu_z_corr_[2], imu_z_corr_[3]);
+            }
             // if load fails, just ignore
             all_legs_current_robot_state_ = all_legs_interface_->getCurrentState(0.01);
             if (all_legs_current_robot_state_) {
@@ -510,7 +514,7 @@ private:
                 y_stride = target_y_stride_*y_stride_max;
                 gait_waypoints = sineWalkGait_(waypoint_N, swing_fraction, lift, x_stride, y_stride, x_shift,y_shift);
             } else {
-                gait_waypoints = sineWalkGait_(10, swing_fraction, 0.0, 0.0, 0.0, 0.0, 0.0);
+                gait_waypoints = sineWalkGait_(1, swing_fraction, 0.0, 0.0, 0.0, 0.0, 0.0); // 1 waypoint, min latency
             }
             if (gait_waypoints.empty()) {
                 RCLCPP_WARN(get_logger(), "CubicDoggoLifecycleManager:controlLoop_(): "
@@ -649,9 +653,10 @@ private:
     rclcpp::Publisher<trajectory_msgs::msg::JointTrajectory>::SharedPtr joint_publisher_;
     rclcpp_action::Client<ExecuteTrajectory>::SharedPtr                 exec_action_client_;
 
+    control_toolbox::Pid pitch_pid_, roll_pid_;
     std::atomic<double> current_pitch_{0.0};
     std::atomic<double> current_roll_{0.0};
-    rclcpp::Subscription<geometry_msgs::msg::Vector3>::SharedPtr imu_subscriber_;
+    rclcpp::Subscription<sensor_msgs::msg::JointState>::SharedPtr joint_state_subscriber_;
     std::array<double, legN> imu_z_corr_{};
 };
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
