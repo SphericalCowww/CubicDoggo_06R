@@ -19,19 +19,27 @@ public:
         std::string led_path   = this->get_parameter("led_path")  .as_string();
         is_rasp_pi_ = std::filesystem::exists(alarm_path) && 
                       std::filesystem::exists(led_path);
-        if (is_valid() == true) {
+        if (is_rasp_pi_ == true) {
             RCLCPP_INFO(get_logger(), "RapsPiPeripheralNode:constructor(): raspberry pi "
                                       "detecting power alarm at %s, led at %s", 
                                       alarm_path.c_str(), led_path.c_str());
         } else {
-            RCLCPP_WARN(get_logger(), "RapsPiPeripheralNode:constructor(): not on a raspberry pi (or no LED access)");
+            if (std::filesystem::exists(alarm_path) == false) {
+                RCLCPP_WARN(get_logger(), "RapsPiPeripheralNode:constructor(): "
+                                          "no power alarm access at %s", alarm_path.c_str());
+            }
+            if (std::filesystem::exists(led_path) == false) {
+                RCLCPP_WARN(get_logger(), "RapsPiPeripheralNode:constructor(): "
+                                          "no led path found at %s", led_path.c_str());
+            }
         }
         is_voltage_ = std::filesystem::exists(volt_path);
         if (is_voltage_ == true) {
             RCLCPP_INFO(get_logger(), "RapsPiPeripheralNode:constructor(): raspberry pi "
                                       "detecting power voltage at %s", volt_path.c_str());
         } else {
-            RCLCPP_WARN(get_logger(), "RapsPiPeripheralNode:constructor(): no power voltage access");
+            RCLCPP_WARN(get_logger(), "RapsPiPeripheralNode:constructor(): "
+                                      "no power voltage access at %s", volt_path.c_str());
         }
 
         volt_pub_ = this->create_publisher<example_interfaces::msg::Float64>("pi/voltage", 10);

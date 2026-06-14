@@ -113,7 +113,7 @@ def generate_launch_description():
         executable="rasp_pi_peripheral_node",
         output="screen", 
         emulate_tty=True,
-        parameters=[{"alarm_path": "/sys/class/hwmon/hwmon3/in0_lcrit_alarm",
+        parameters=[{"alarm_path": "/sys/class/hwmon/hwmon4/in0_lcrit_alarm",
                      "led_path":   "/sys/class/leds/ACT/"}]
     )    
 
