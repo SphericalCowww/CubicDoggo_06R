@@ -25,7 +25,10 @@ add_executable(cubic_doggo_lifecycle_imuNode
     src/pid_controller.cpp)
 ament_target_dependencies(cubic_doggo_lifecycle_imuNode rclcpp moveit_ros_planning_interface moveit_core example_interfaces my_robot_interface control_toolbox)
 
-install(TARGETS cubic_doggo_lifecycle cubic_doggo_lifecycle_imuNode
+add_executable(cubic_doggo_lifecycle_imuController src/cubic_doggo_lifecycle_imuController.cpp)
+ament_target_dependencies(cubic_doggo_lifecycle_imuController rclcpp moveit_ros_planning_interface moveit_core example_interfaces my_robot_interface control_toolbox)
+
+install(TARGETS cubic_doggo_lifecycle cubic_doggo_lifecycle_imuNode cubic_doggo_lifecycle_imuController
   DESTINATION lib/${PROJECT_NAME}
 )
 

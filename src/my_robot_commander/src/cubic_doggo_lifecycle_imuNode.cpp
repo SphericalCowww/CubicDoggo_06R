@@ -435,7 +435,7 @@ private:
         double pitch_shift = 3.0, roll_shift = 0.0;     // shift in degrees 
 
 
-        auto loop_rate = rclcpp::WallRate(100);         // loop buffer (Hz),                        default 100
+        auto loop_rate = rclcpp::WallRate(50);         // loop buffer (Hz),                        default 100
         double maxVelScale = 1.0, maxAccScale = 1.0;
         int    waypoint_N     = 100;                    // number of waypoints for each cycle,      default 100
         double waypoint_dt    = 0.01;                   // second for each waypoint,                default 0.01
