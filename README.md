@@ -1,6 +1,6 @@
 # CubicDoggo: Upgrade to Incorporate IMU/LiDAR
 
-CubicDoggo 06R (High Mobility Type, sort of) is upgraded from the base CubicDoggo <a href="https://github.com/SphericalCowww/CubicDoggo">GitHub</a>. Copy <a href="https://github.com/SphericalCowww/CubicDoggo/tree/main/src/my_robot_description/mesh/CADv1">CADv1</a> under ``CubicDoggo_06R/tree/main/src/my_robot_description/mesh/``. Also, follow this chapter to set up the servos: ``https://github.com/SphericalCowww/CubicDoggo/tree/main#running-a-single-servo-on-ros2``
+Cubic Doggo 06R (High Mobility Type, sort of) is upgraded from the base Cubic Doggo <a href="https://github.com/SphericalCowww/CubicDoggo">GitHub</a>. Copy <a href="https://github.com/SphericalCowww/CubicDoggo/tree/main/src/my_robot_description/mesh/CADv1">CADv1</a> under ``CubicDoggo_06R/tree/main/src/my_robot_description/mesh/``. Also, follow this chapter to set up the servos: ``https://github.com/SphericalCowww/CubicDoggo/tree/main#running-a-single-servo-on-ros2``
 
 Demos: wobbly IMU (<a href="https://www.reddit.com/r/robotics/comments/1u1iql9/cubic_doggo_update_wobbly_imu/">Reddit</a>, <a href="https://www.reddit.com/r/ROS/comments/1u1j9yf/cubic_doggo_update_wobbly_imu/">Reddit</a>).
 
