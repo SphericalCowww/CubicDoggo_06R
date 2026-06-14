@@ -192,6 +192,10 @@ Check out all the gait options under ``CubicDoggo_06R/src/my_robot_commander/src
 
 ### IMU balancing
 
+Checking loop speed for latency, including IK calculation and IMU readout:
+
+    ros2 topic hz /joint_states
+
 Standing up and then changing to a slope. Unstable IMU with lots of oscillations:
 
 <img src="https://github.com/SphericalCowww/CubicDoggo_06R/blob/main/plotJuggler1_standThenSlope.png" width="1000">
