@@ -270,18 +270,27 @@ private:
     }
     ///////////
     void legNamedTarget_(const std::string &name) {
+        is_busy_ = true;
         if (name == "stand") {
             all_legs_interface_->setNamedTarget("stand_mid");
+            idle_name_ = "stand_mid";
             planAndExecute_();
+            RCLCPP_INFO(get_logger(), "CubicDoggoLifecycleManager:legNamedTarget_(): "
+                                      "idle_name_ = %s",idle_name_.c_str());
             std::this_thread::sleep_for(std::chrono::milliseconds(200));
         }
         all_legs_interface_->setNamedTarget(name);
         idle_name_ = name;
-        
+        planAndExecute_(); 
         RCLCPP_INFO(get_logger(), "CubicDoggoLifecycleManager:legNamedTarget_(): idle_name_ = %s",idle_name_.c_str());
-        planAndExecute_();
+
+        if (name == "stand") {
+            control_initialized_ = false; 
+        }
+        is_busy_ = false;
     }
     void legJointTarget_(const std::vector<double> &joints) {
+        is_busy_ = true;
         std::size_t legIdx = static_cast<std::size_t>(joints[0]);
         all_legs_current_robot_state_ = all_legs_interface_->getCurrentState(2.0);
         const std::vector<std::string>& leg_joint_names = leg_interface_[legIdx]->getJointNames();
@@ -291,8 +300,10 @@ private:
         }
         all_legs_interface_->setJointValueTarget(*all_legs_current_robot_state_);
         planAndExecute_();
+        is_busy_ = false;
     }
     void legPoseTarget_(int legIdxInput, double x, double y, double z) {
+        is_busy_ = true;
         std::size_t legIdx = static_cast<std::size_t>(legIdxInput);
         geometry_msgs::msg::Pose target_pose = endEffector_pose_[legIdx].pose;
         target_pose.position.x = x;
@@ -321,7 +332,8 @@ private:
         }
         RCLCPP_INFO(get_logger(), "CubicDoggoLifecycleManager:legSetPoseTarget_(): "
                                   "current end effector (i, x, y, z) = (%zu, %lf, %lf, %lf)",
-                    legIdx, endEffector_x_[legIdx], endEffector_y_[legIdx], endEffector_z_[legIdx]);    
+                                  legIdx, endEffector_x_[legIdx], endEffector_y_[legIdx], endEffector_z_[legIdx]);    
+        is_busy_ = false;
     }
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     std::vector<moveit::core::RobotStatePtr> sineWalkGait_(int waypoint_count, double swing_fraction, 
@@ -466,7 +478,7 @@ private:
                                           is_walking_.load(), control_initialized_.load(), idle_name_.c_str());
             }
 
-            if ((is_walking_ == false) && (idle_name_ != "stand")) {
+            if ((is_busy_ == true) || ((is_walking_ == false) && (idle_name_ != "stand"))) {
                 x_stride = 0.0, y_stride = 0.0;
                 control_initialized_ = false;
                 std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -642,6 +654,7 @@ private:
     rclcpp::Service<std_srvs::srv::SetBool>::SharedPtr walk_service_; 
     moveit::core::RobotStatePtr last_walk_state_;
     std::string       idle_name_ = "rest";
+    std::atomic<bool> is_busy_   {false};
     std::atomic<bool> is_walking_{false};
     std::atomic<bool> control_initialized_{false};
     std::atomic<bool> keep_running_thread_{false};

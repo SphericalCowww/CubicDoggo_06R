@@ -467,10 +467,8 @@ private:
                 std::this_thread::sleep_for(std::chrono::milliseconds(100));
                 continue;
             } else if (control_initialized_ == false) {
-                if (idle_name_ != "stand") {
-                    legNamedTarget_("stand");
-                    std::this_thread::sleep_for(std::chrono::milliseconds(100));
-                }
+                legNamedTarget_("stand");
+                std::this_thread::sleep_for(std::chrono::milliseconds(100));
                 setDefaultVelAccScaler_(maxVelScale, maxAccScale);
                 loadCurrentRobotState_();
                 last_walk_state_ = std::make_shared<moveit::core::RobotState>(*all_legs_current_robot_state_);
