@@ -1,7 +1,7 @@
 # This config file is used by ros2_control
 controller_manager:
   ros__parameters:
-    update_rate: 50  # Hz
+    update_rate: 50  # Hz, also update "auto loop_rate = rclcpp::WallRate(???);" to match
 
     # Replace the 4 individual ones with this:
     all_legs_controller:

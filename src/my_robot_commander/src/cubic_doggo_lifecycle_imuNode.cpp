@@ -148,8 +148,8 @@ public:
 
         imu_subscriber_ = create_subscription<geometry_msgs::msg::Vector3>(
             "imu/euler", 10, [this](const geometry_msgs::msg::Vector3::SharedPtr msg) {
-            current_pitch_ = msg->y;            // + when tilting forwards 
-            current_roll_  = msg->x;            // + when tilting leftwards 
+            current_pitch_ = msg->y;            // + when tilting leftwards
+            current_roll_  = msg->x;            // + when tilting forwards 
         });
 
         keep_running_thread_ = true;
@@ -432,14 +432,14 @@ private:
         aw_strat.i_min = -0.02;
         pitch_pid.set_gains(0.0015, 0.001, 0.00005, 0.03, -0.03, aw_strat);
         roll_pid .set_gains(0.0015, 0.001, 0.00005, 0.03, -0.03, aw_strat);
-        double pitch_shift = 3.0, roll_shift = 0.0;     // shift in degrees 
+        double pitch_shift = 0.0, roll_shift = 3.0;     // shift in degrees 
 
 
-        auto loop_rate = rclcpp::WallRate(50);         // loop buffer (Hz),                        default 100
+        auto loop_rate = rclcpp::WallRate(50);  // Hz, for consistent loop rate, match cubic_doggo_controllers.yaml
         double maxVelScale = 1.0, maxAccScale = 1.0;
-        int    waypoint_N     = 100;                    // number of waypoints for each cycle,      default 100
-        double waypoint_dt    = 0.01;                   // second for each waypoint,                default 0.01
-        double IK_bufferTime  = 0.10;                   // time at end of cycle buffer for IK calc, default 0.10
+        int    waypoint_N     = 100;                    // number of waypoints for each cycle
+        double waypoint_dt    = 0.02;                   // second for each waypoint, to match loop_rate
+        double IK_bufferTime  = 0.10;                   // time at end of cycle buffer for IK calc
         double swing_fraction = 0.50;                   // creep < 0.25 < stable trot < 0.5 < trot
         double lift = 0.02, x_stride_max = 0.02, y_stride_max = 0.025, x_shift = 0.008, y_shift = -0.01;
 

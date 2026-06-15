@@ -43,7 +43,9 @@ const double DEFAULT_VEL_SCALE = 0.2;
 const double DEFAULT_ACC_SCALE = 0.05;
 
 #include <control_toolbox/pid.hpp>
-#include <sensor_msgs/msg/joint_state.hpp>
+#include <sensor_msgs/msg/imu.hpp>
+#include <tf2/LinearMath/Quaternion.h>
+#include <tf2/LinearMath/Matrix3x3.h>
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 class CubicDoggoLifecycleManager : public rclcpp_lifecycle::LifecycleNode {
 public:
@@ -145,16 +147,20 @@ public:
         leg_feet_subscriber_  = create_subscription<custom_feet_array>("/leg_set_feet",  10,
             std::bind(&CubicDoggoLifecycleManager::legFeetCallback_,  this, _1), sub_options);
 
-        joint_state_subscriber_ = create_subscription<sensor_msgs::msg::JointState>(
-            "/joint_states", 10, [this](const sensor_msgs::msg::JointState::SharedPtr msg) {
-            for (size_t i = 0; i < msg->name.size(); ++i) {
-                if (msg->name[i] == "imu_bno055/euler.y") {
-                    current_pitch_ = msg->position[i];      // + when tilting forwards
-                }
-                if (msg->name[i] == "imu_bno055/euler.x") { 
-                    current_roll_ = msg->position[i];       // + when tilting leftwards 
-                }
-            }
+        imu_subscriber_ = create_subscription<sensor_msgs::msg::Imu>(
+            "/imu_broadcaster/imu", 10, [this](const sensor_msgs::msg::Imu::SharedPtr msg) {
+            tf2::Quaternion q(
+                msg->orientation.x,
+                msg->orientation.y,
+                msg->orientation.z,
+                msg->orientation.w);
+
+            tf2::Matrix3x3 matrixObj(q);
+            double roll, pitch, yaw;
+            matrixObj.getRPY(roll, pitch, yaw);
+        
+            current_pitch_ = pitch*(180.0/M_PI); 
+            current_roll_  = roll *(180.0/M_PI);
         });
 
         keep_running_thread_ = true;
@@ -439,7 +445,7 @@ private:
         response->message = is_walking_ ? "walking started" : "walking stopped";
     }
     void controlLoop_() {
-        bool loopInfo = false;
+        bool loopInfo = true;
 
         // https://docs.ros.org/en/jazzy/p/control_toolbox/generated/structcontrol__toolbox_1_1AntiWindupStrategy.html
         control_toolbox::AntiWindupStrategy aw_strat;
@@ -448,13 +454,13 @@ private:
         aw_strat.i_min = -0.02;
         pitch_pid_.set_gains(0.0008, 0.0001, 0.00002, 0.03, -0.03, aw_strat);
         roll_pid_.set_gains(0.0008, 0.0001, 0.00002, 0.03, -0.03, aw_strat);
-        double pitch_shift = 3.0, roll_shift = 0.0;     // shift in degrees 
+        double pitch_shift = 0.0, roll_shift = 0.0;     // shift in degrees 
 
-        auto loop_rate = rclcpp::WallRate(50);         // loop buffer (Hz),                        default 100
+        auto loop_rate = rclcpp::WallRate(50);  // Hz, for consistent loop rate, match cubic_doggo_controllers.yaml
         double maxVelScale = 1.0, maxAccScale = 1.0;
-        int    waypoint_N     = 100;                    // number of waypoints for each cycle,      default 100
-        double waypoint_dt    = 0.01;                   // second for each waypoint,                default 0.01
-        double IK_bufferTime  = 0.10;                   // time at end of cycle buffer for IK calc, default 0.10
+        int    waypoint_N     = 100;                    // number of waypoints for each cycle
+        double waypoint_dt    = 0.02;                   // second for each waypoint, to match loop rate
+        double IK_bufferTime  = 0.10;                   // time at end of cycle buffer for IK calc
         double swing_fraction = 0.50;                   // creep < 0.25 < stable trot < 0.5 < trot
         double lift = 0.02, x_stride_max = 0.02, y_stride_max = 0.025, x_shift = 0.008, y_shift = -0.01;
 
@@ -669,7 +675,7 @@ private:
     control_toolbox::Pid pitch_pid_, roll_pid_;
     std::atomic<double> current_pitch_{0.0};
     std::atomic<double> current_roll_{0.0};
-    rclcpp::Subscription<sensor_msgs::msg::JointState>::SharedPtr joint_state_subscriber_;
+    rclcpp::Subscription<sensor_msgs::msg::Imu>::SharedPtr imu_subscriber_;
     std::array<double, legN> imu_z_corr_{};
 };
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -1,14 +1,14 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <root>
  <tabbed_widget name="Main Window" parent="main_window">
-  <Tab tab_name="Cubic Doggo" containers="1">
+  <Tab containers="1" tab_name="Cubic Doggo">
    <Container>
-    <DockSplitter sizes="1" count="1" orientation="-">
-     <DockSplitter sizes="0.500719;0.499281" count="2" orientation="|">
-      <DockSplitter sizes="0.5;0.5" count="2" orientation="-">
+    <DockSplitter orientation="-" sizes="1" count="1">
+     <DockSplitter orientation="|" sizes="0.500719;0.499281" count="2">
+      <DockSplitter orientation="-" sizes="0.5;0.5" count="2">
        <DockArea name="position">
-        <plot line_width="1.0" mode="TimeSeries" flip_x="false" flip_y="false">
-         <range bottom="2.088565" left="0.000000" top="4.202292" right="9.338078"/>
+        <plot flip_x="false" flip_y="false" mode="TimeSeries" line_width="1.0">
+         <range right="830.030804" left="800.037920" top="4.408126" bottom="1.962517"/>
          <limitY/>
          <curve name="/joint_states/servo1_servo1_padding_BL/position" color="#1f77b4"/>
          <curve name="/joint_states/servo1_servo1_padding_BR/position" color="#d62728"/>
@@ -25,8 +25,8 @@
         </plot>
        </DockArea>
        <DockArea name="effort">
-        <plot line_width="1.0" mode="TimeSeries" flip_x="false" flip_y="false">
-         <range bottom="-59.750000" left="0.000000" top="55.750000" right="9.338078"/>
+        <plot flip_x="false" flip_y="false" mode="TimeSeries" line_width="1.0">
+         <range right="830.030804" left="800.037920" top="654.800000" bottom="-554.800000"/>
          <limitY/>
          <curve name="/joint_states/servo1_servo1_padding_BL/effort" color="#1f77b4"/>
          <curve name="/joint_states/servo1_servo1_padding_BR/effort" color="#d62728"/>
@@ -43,10 +43,10 @@
         </plot>
        </DockArea>
       </DockSplitter>
-      <DockSplitter sizes="0.5;0.5" count="2" orientation="-">
+      <DockSplitter orientation="-" sizes="0.5;0.5" count="2">
        <DockArea name="velocity">
-        <plot line_width="1.0" mode="TimeSeries" flip_x="false" flip_y="false">
-         <range bottom="-0.100000" left="0.000000" top="0.100000" right="9.338078"/>
+        <plot flip_x="false" flip_y="false" mode="TimeSeries" line_width="1.0">
+         <range right="830.030804" left="800.037920" top="2.144485" bottom="-2.312351"/>
          <limitY/>
          <curve name="/joint_states/servo1_servo1_padding_BL/velocity" color="#f14cc1"/>
          <curve name="/joint_states/servo1_servo1_padding_BR/velocity" color="#9467bd"/>
@@ -62,13 +62,13 @@
          <curve name="/joint_states/servo3_calfFeet_FR/velocity" color="#bcbd22"/>
         </plot>
        </DockArea>
-       <DockArea name="...">
-        <plot line_width="1.0" mode="TimeSeries" flip_x="false" flip_y="false">
-         <range bottom="-0.073250" left="0.000000" top="0.024495" right="9.338078"/>
+       <DockArea name="imu">
+        <plot flip_x="false" flip_y="false" mode="TimeSeries" line_width="1.0">
+         <range right="830.030804" left="800.037920" top="1.596840" bottom="-4.619191"/>
          <limitY/>
-         <curve name="/imu_broadcaster/imu/orientation/roll" color="#d62728"/>
-         <curve name="/imu_broadcaster/imu/orientation/pitch" color="#1f77b4"/>
-         <curve name="/imu_broadcaster/imu/orientation/yaw" color="#1ac938"/>
+         <curve name="pitch_deg" color="#d62728"/>
+         <curve name="roll_deg" color="#1ac938"/>
+         <curve name="yaw_deg" color="#ff7f0e"/>
         </plot>
        </DockArea>
       </DockSplitter>
@@ -119,7 +119,38 @@
  <previouslyLoaded_Datafiles/>
  <previouslyLoaded_Streamer name="ROS2 Topic Subscriber"/>
  <!-- - - - - - - - - - - - - - - -->
- <customMathEquations/>
+ <customMathEquations>
+  <snippet name="yaw_deg">
+   <global></global>
+   <function>return value * 180 / 3.1415926</function>
+   <linked_source>/imu_broadcaster/imu/orientation/yaw</linked_source>
+  </snippet>
+  <snippet name="roll_deg">
+   <global></global>
+   <function>return value * 180 / 3.1415926</function>
+   <linked_source>/imu_broadcaster/imu/orientation/roll</linked_source>
+  </snippet>
+  <snippet name="pitch_deg">
+   <global></global>
+   <function>return value * 180 / 3.1415926</function>
+   <linked_source>/imu_broadcaster/imu/orientation/pitch</linked_source>
+  </snippet>
+  <snippet name="roll_degree">
+   <global></global>
+   <function>return value * 180 / 3.1415926</function>
+   <linked_source>/imu_broadcaster/imu/orientation/roll</linked_source>
+  </snippet>
+  <snippet name="pitch_degree">
+   <global></global>
+   <function>return value * 180 / 3.1415926</function>
+   <linked_source>/imu_broadcaster/imu/orientation/pitch</linked_source>
+  </snippet>
+  <snippet name="yaw_degree">
+   <global></global>
+   <function>return value * 180 / 3.1415926</function>
+   <linked_source>/imu_broadcaster/imu/orientation/yaw</linked_source>
+  </snippet>
+ </customMathEquations>
  <snippets/>
  <!-- - - - - - - - - - - - - - - -->
 </root>
