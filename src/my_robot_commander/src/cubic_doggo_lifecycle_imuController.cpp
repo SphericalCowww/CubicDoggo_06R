@@ -158,8 +158,8 @@ public:
             tf2::Matrix3x3 matrixObj(q);
             double roll, pitch, yaw;
             matrixObj.getRPY(roll, pitch, yaw);
-        
-            current_pitch_ = pitch*(180.0/M_PI); 
+            
+            current_pitch_ = pitch*(180.0/M_PI);
             current_roll_  = roll *(180.0/M_PI);
         });
 
@@ -454,7 +454,7 @@ private:
         aw_strat.i_min = -0.02;
         pitch_pid_.set_gains(0.0008, 0.0001, 0.00002, 0.03, -0.03, aw_strat);
         roll_pid_.set_gains(0.0008, 0.0001, 0.00002, 0.03, -0.03, aw_strat);
-        double pitch_shift = 0.0, roll_shift = 0.0;     // shift in degrees 
+        double pitch_shift = 1.0, roll_shift = -3.0;     // shift in degrees 
 
         auto loop_rate = rclcpp::WallRate(50);  // Hz, for consistent loop rate, match cubic_doggo_controllers.yaml
         double maxVelScale = 1.0, maxAccScale = 1.0;
@@ -482,6 +482,9 @@ private:
                 RCLCPP_INFO(get_logger(), "CubicDoggoLifecycleManager:controlLoop_(): "
                                           "is_walking_ = %d, control_initialized_ = %d, idle_name_ = %s", 
                                           is_walking_.load(), control_initialized_.load(), idle_name_.c_str());
+                RCLCPP_INFO(get_logger(), "CubicDoggoLifecycleManager:controlLoop_(): "
+                                          "raw pitch = %lf, raw roll = %lf", 
+                                          current_pitch_.load(), current_roll_.load());
             }
 
             if ((is_busy_ == true) || ((is_walking_ == false) && (idle_name_ != "stand"))) {
@@ -506,18 +509,21 @@ private:
                 RCLCPP_INFO(get_logger(), "CubicDoggoLifecycleManager:controlLoop_(): home positions captured.");
             }
         
-            double current_pitch = current_pitch_.load() - pitch_shift;
-            double current_roll  = current_roll_.load()  - roll_shift;
+            double current_pitch = current_pitch_.load() - pitch_shift;      // ensure tilt rightward
+            double current_roll  = current_roll_.load()  - roll_shift;       // ensure tilt backward
             double pitch_corr = pitch_pid_.compute_command(current_pitch, delta_t);
             double roll_corr  = roll_pid_ .compute_command(current_roll,  delta_t);
-            imu_z_corr_[0] = -pitch_corr - roll_corr;                           //NOTE: watch out for direction!!!
+            // NOTE: FL, FR, BL, BR, watch out for direction!!!
+            imu_z_corr_[0] =  pitch_corr + roll_corr;
             imu_z_corr_[1] = -pitch_corr + roll_corr;
             imu_z_corr_[2] =  pitch_corr - roll_corr;
-            imu_z_corr_[3] =  pitch_corr + roll_corr;
+            imu_z_corr_[3] = -pitch_corr - roll_corr;
             if (loopInfo == true) {
+                RCLCPP_INFO(get_logger(), "CubicDoggoLifecycleManager:controlLoop_(): pitch = %lf, roll = %lf",
+                                          current_pitch, current_roll);
                 RCLCPP_INFO(get_logger(), "CubicDoggoLifecycleManager:controlLoop_(): "
-                                          "pitch = %lf, roll = %lf, imu_z_corr = [%lf, %lf, %lf, %lf]",
-                                          current_pitch, current_roll, 
+                                          "pitch_corr = %lf, roll_corr = %lf, imu_z_corr = [%lf, %lf, %lf, %lf]",
+                                          pitch_corr, roll_corr, 
                                           imu_z_corr_[0], imu_z_corr_[1], imu_z_corr_[2], imu_z_corr_[3]);
             }
             // if load fails, just ignore
