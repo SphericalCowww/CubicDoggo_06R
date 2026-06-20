@@ -106,6 +106,21 @@ public:
         all_legs_interface_->setPlanningTime(1.0);
         setDefaultVelAccScaler_(DEFAULT_VEL_SCALE, DEFAULT_ACC_SCALE);
  
+        auto temp_node = std::make_shared<rclcpp::Node>("temp_param_fetcher");
+        auto param_client = std::make_shared<rclcpp::SyncParametersClient>(temp_node, "/controller_manager");
+        if (param_client->wait_for_service(std::chrono::seconds(3))) {
+            if (param_client->has_parameter("update_rate")) {
+                update_rate_ = param_client->get_parameter<int>("update_rate");
+                RCLCPP_INFO(get_logger(), "CubicDoggoLifecycleManager:on_configure(): "
+                                          "successfully synced update_rate: %d Hz", update_rate_);
+            } else {
+                RCLCPP_WARN(get_logger(), "CubicDoggoLifecycleManager:on_configure(): "
+                                          "'update_rate' param missing in controller_manager. Using 100Hz.");
+            }
+        } else {
+            RCLCPP_ERROR(get_logger(), "CubicDoggoLifecycleManager:on_configure(): controller_manager not found");
+        }
+
         state_service_ = this->create_service<std_srvs::srv::Trigger>(
             "get_robot_state",
             std::bind(&CubicDoggoLifecycleManager::handleGetState_, this, _1, _2)); 
@@ -150,28 +165,27 @@ public:
         leg_feet_subscriber_  = create_subscription<custom_feet_array>("/leg_set_feet",  10,
             std::bind(&CubicDoggoLifecycleManager::legFeetCallback_,  this, _1), sub_options);
 
-        joint_state_subscriber_ = create_subscription<sensor_msgs::msg::JointState>(
-            "/joint_states", 10, [this](const sensor_msgs::msg::JointState::SharedPtr msg) {
-            std::lock_guard<std::mutex> lock(state_mutex_);
-            if (last_walk_state_) {
-                last_walk_state_->setVariablePositions(msg->name, msg->position);
-            }
-        });
-
         imu_subscriber_ = create_subscription<sensor_msgs::msg::Imu>(
             "/imu_broadcaster/imu", 10, [this](const sensor_msgs::msg::Imu::SharedPtr msg) {
-            tf2::Quaternion q(
+            tf2::Quaternion qObj(
                 msg->orientation.x,
                 msg->orientation.y,
                 msg->orientation.z,
                 msg->orientation.w);
 
-            tf2::Matrix3x3 matrixObj(q);
+            tf2::Matrix3x3 matrixObj(qObj);
             double roll, pitch, yaw;
             matrixObj.getRPY(roll, pitch, yaw);
-            
-            current_pitch_ = pitch*(180.0/M_PI);
-            current_roll_  = roll *(180.0/M_PI);
+ 
+            double raw_pitch = pitch * (180.0 / M_PI);
+            double raw_roll  = roll  * (180.0 / M_PI);
+            raw_pitch_.store(raw_pitch);
+            raw_roll_ .store(raw_roll);
+            double alpha = 0.3;                             // adjust between 0.0 and 1.0, lower the smoother
+            double smoothed_pitch = alpha*raw_pitch + (1.0 - alpha)*smooth_pitch_.load();
+            double smoothed_roll  = alpha*raw_roll  + (1.0 - alpha)*smooth_roll_.load();
+            smooth_pitch_.store(smoothed_pitch);
+            smooth_roll_.store(smoothed_roll);
         });
 
         keep_running_thread_ = true;
@@ -355,15 +369,13 @@ private:
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     std::vector<moveit::core::RobotStatePtr> sineWalkGait_(int waypoint_count, double swing_fraction, 
                                                            double lift, double x_stride, double y_stride, 
-                                                           double x_shift, double y_shift,
-                                                           moveit::core::RobotStatePtr last_walk_state_snapshot)
+                                                           double x_shift, double y_shift)
     // Note: full cycle makes 2 x stride
     {
         std::vector<moveit::core::RobotStatePtr> gait_waypoints;
         for (int wp = 0; wp < waypoint_count; wp++) {
             double gait_phase = static_cast<double>(wp)/static_cast<double>(waypoint_count);
-            moveit::core::RobotStatePtr walk_state = 
-                std::make_shared<moveit::core::RobotState>(*last_walk_state_snapshot);
+            moveit::core::RobotStatePtr walk_state = std::make_shared<moveit::core::RobotState>(*last_walk_state_);
             for (std::size_t legIdx = 0; legIdx < legN; legIdx++) {
                 double target_x = home_x_[legIdx];
                 double target_y = home_y_[legIdx];
@@ -462,27 +474,30 @@ private:
         // https://docs.ros.org/en/jazzy/p/control_toolbox/generated/structcontrol__toolbox_1_1AntiWindupStrategy.html
         control_toolbox::AntiWindupStrategy aw_strat;
         aw_strat.type = control_toolbox::AntiWindupStrategy::CONDITIONAL_INTEGRATION;
-        aw_strat.i_max =  0.02;
-        aw_strat.i_min = -0.02;
-        //pitch_pid_.set_gains(0.0008, 0.0001, 0.00002, 0.03, -0.03, aw_strat);
-        //roll_pid_ .set_gains(0.0008, 0.0001, 0.00002, 0.03, -0.03, aw_strat);
-        pitch_pid_.set_gains(0.0018, 0.0, 0.0, 0.03, -0.03, aw_strat);
-        roll_pid_ .set_gains(0.0018, 0.0, 0.0, 0.03, -0.03, aw_strat);
-        double pitch_shift = 1.0, roll_shift = -3.0;     // shift in degrees 
+        aw_strat.i_max =  0.03;
+        aw_strat.i_min = -0.03;
+        double kP = 0.0015, kI = 0.005, kD = 0.0001; 
+        double corr_thres = 0.3, corr_limit = 0.025;
+        double pitch_shift = 1.0, roll_shift = -3.0;
 
-        auto loop_rate = rclcpp::WallRate(50);  // Hz, for consistent loop rate, match cubic_doggo_controllers.yaml
+        auto loop_rate = rclcpp::WallRate(update_rate_);    // Hz, for consistent loop rate
         double maxVelScale = 1.0, maxAccScale = 1.0;
-        int    waypoint_N     = 100;                    // number of waypoints for each cycle
-        double waypoint_dt    = 0.02;                   // second for each waypoint, to match loop rate
-        double IK_bufferTime  = 0.10;                   // time at end of cycle buffer for IK calc
-        double swing_fraction = 0.50;                   // creep < 0.25 < stable trot < 0.5 < trot
+        int    waypoint_N_walk   = 100;                        // number of waypoints for each cycle
+        double waypoint_dt_walk  = 1.0/double(update_rate_);   // second for each waypoint, to match loop rate
+        int    waypoint_N_stand  = 1;                          // standing require immidiate reaction
+        double waypoint_dt_stand = 1.0/double(update_rate_);   // standing require faster trajectory
+        double IK_bufferTime     = 0.10;                       // time at end of cycle buffer for IK calc
+        double swing_fraction    = 0.50;                       // creep < 0.25 < stable trot < 0.5 < trot
         double lift = 0.02, x_stride_max = 0.02, y_stride_max = 0.025, x_shift = 0.008, y_shift = -0.01;
-
         //////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        pitch_pid_.set_gains(kP, kI, 0.0, aw_strat.i_max, aw_strat.i_min, aw_strat);     //P, I, D, upp, low
+        roll_pid_ .set_gains(kP, kI, 0.0, aw_strat.i_max, aw_strat.i_min, aw_strat);
+    
         all_legs_robot_model_ = all_legs_interface_->getRobotModel();
         auto joint_model_group = all_legs_robot_model_->getJointModelGroup(all_legs_planning_group_);
         std::vector<std::string> joint_names = joint_model_group->getActiveJointModelNames();
 
+        double waypoint_dt = 1.0/double(update_rate_);
         double x_stride = 0.0, y_stride = 0.0;    
         rclcpp::Time previous_time = this->get_clock()->now();
         while (keep_running_thread_ && rclcpp::ok()) {
@@ -498,18 +513,16 @@ private:
                                       is_walking_.load(), control_initialized_.load(), idle_name_.c_str());
             RCLCPP_INFO(get_logger(), "CubicDoggoLifecycleManager:controlLoop_(): "
                                       "raw pitch = %lf, raw roll = %lf", 
-                                      current_pitch_.load(), current_roll_.load());
+                                      raw_pitch_.load(), raw_roll_.load());
 
             if ((is_busy_ == true) || ((is_walking_ == false) && (idle_name_ != "stand"))) {
-                x_stride = 0.0, y_stride = 0.0;
-                control_initialized_ = false;
                 std::this_thread::sleep_for(std::chrono::milliseconds(100));
                 continue;
             } else if (control_initialized_ == false) {
                 if (idle_name_ != "stand") {
                     legNamedTarget_("stand");
-                    std::this_thread::sleep_for(std::chrono::milliseconds(100));
                 }
+                std::this_thread::sleep_for(std::chrono::milliseconds(500));
                 setDefaultVelAccScaler_(maxVelScale, maxAccScale);
                 loadCurrentRobotState_();
                 last_walk_state_ = std::make_shared<moveit::core::RobotState>(*all_legs_current_robot_state_);
@@ -519,46 +532,51 @@ private:
                     home_z_[legIdx] = endEffector_z_[legIdx];
                 }
 
+                last_smooth_pitch_ = smooth_pitch_.load() - pitch_shift;
+                last_smooth_roll_  = smooth_roll_.load()  - roll_shift;
                 pitch_pid_.reset();
                 roll_pid_ .reset();
                 control_initialized_ = true;    
                 RCLCPP_INFO(get_logger(), "CubicDoggoLifecycleManager:controlLoop_(): home positions captured.");
             }
         
-            double current_pitch = current_pitch_.load() - pitch_shift;      // ensure tilt rightward
-            double current_roll  = current_roll_.load()  - roll_shift;       // ensure tilt backward
-            double pitch_corr = pitch_pid_.compute_command(current_pitch, delta_t);
-            double roll_corr  = roll_pid_ .compute_command(current_roll,  delta_t);
+            double raw_pitch = raw_pitch_.load() - pitch_shift;      // ensure tilt rightward
+            double raw_roll  = raw_roll_.load()  - roll_shift;       // ensure tilt backward
+            double smooth_pitch = smooth_pitch_.load() - pitch_shift;      // ensure tilt rightward
+            double smooth_roll  = smooth_roll_.load()  - roll_shift;       // ensure tilt backward
+            double pitch_velocity = (smooth_pitch - last_smooth_pitch_)*update_rate_;
+            double roll_velocity  = (smooth_roll  - last_smooth_roll_) *update_rate_;
+            last_smooth_pitch_ = smooth_pitch;
+            last_smooth_roll_  = smooth_roll;
+            double pitch_corr = pitch_pid_.compute_command(raw_pitch, delta_t) - kD*pitch_velocity;
+            double roll_corr  = roll_pid_ .compute_command(raw_roll,  delta_t) - kD*roll_velocity;
+            if (std::abs(raw_pitch) < corr_thres) pitch_corr = 0.0;
+            if (std::abs(raw_roll)  < corr_thres) roll_corr  = 0.0;
+            pitch_corr = std::clamp(pitch_corr, -corr_limit, corr_limit);
+            roll_corr  = std::clamp(roll_corr,  -corr_limit, corr_limit);
             // NOTE: FL, FR, BL, BR, watch out for direction!!!
-            imu_z_corr_[0] =  pitch_corr + roll_corr;
+            imu_z_corr_[0] = +pitch_corr + roll_corr;
             imu_z_corr_[1] = -pitch_corr + roll_corr;
-            imu_z_corr_[2] =  pitch_corr - roll_corr;
+            imu_z_corr_[2] = +pitch_corr - roll_corr;
             imu_z_corr_[3] = -pitch_corr - roll_corr;
             RCLCPP_INFO(get_logger(), "CubicDoggoLifecycleManager:controlLoop_(): pitch = %lf, roll = %lf",
-                                      current_pitch, current_roll);
+                                      raw_pitch, raw_roll);
             RCLCPP_INFO(get_logger(), "CubicDoggoLifecycleManager:controlLoop_(): "
-                                      "pitch_corr = %lf, roll_corr = %lf, imu_z_corr = [%lf, %lf, %lf, %lf]",
-                                      pitch_corr, roll_corr, 
+                                      "pitch_corr = %lf (kD corr: %lf), roll_corr = %lf (kD corr: %lf)",
+                                      pitch_corr, kD*pitch_velocity, roll_corr,kD*roll_velocity);
+            RCLCPP_INFO(get_logger(), "CubicDoggoLifecycleManager:controlLoop_(): imu_z_corr = [%lf, %lf, %lf, %lf]",
                                       imu_z_corr_[0], imu_z_corr_[1], imu_z_corr_[2], imu_z_corr_[3]);
             
-            moveit::core::RobotStatePtr last_walk_state_snapshot;
-            {
-                std::lock_guard<std::mutex> lock(state_mutex_);
-                if (!last_walk_state_) {
-                    continue; 
-                }
-                last_walk_state_snapshot = std::make_shared<moveit::core::RobotState>(*last_walk_state_);
-            }
-     
             std::vector<moveit::core::RobotStatePtr> gait_waypoints;
-            if (is_walking_ == true) { 
+            if (is_walking_ == true) {
+                waypoint_dt = waypoint_dt_walk;
                 x_stride = target_x_stride_*x_stride_max;
                 y_stride = target_y_stride_*y_stride_max;
-                gait_waypoints = sineWalkGait_(waypoint_N, swing_fraction, lift, x_stride, y_stride, x_shift, y_shift,
-                                               last_walk_state_snapshot);
+                gait_waypoints = sineWalkGait_(waypoint_N_walk, swing_fraction, lift, x_stride, y_stride,
+                                               x_shift, y_shift);
             } else {
-                // 1 waypoint, min latency
-                gait_waypoints = sineWalkGait_(1, swing_fraction, 0.0, 0.0, 0.0, 0.0, 0.0, last_walk_state_snapshot);
+                waypoint_dt = waypoint_dt_stand; 
+                gait_waypoints = sineWalkGait_(waypoint_N_stand, swing_fraction, 0.0, 0.0, 0.0, 0.0, 0.0);
             }
             if (gait_waypoints.empty()) {
                 RCLCPP_WARN(get_logger(), "CubicDoggoLifecycleManager:controlLoop_(): "
@@ -583,7 +601,7 @@ private:
             joint_publisher_->publish(traj_msg);
 
             if (is_walking_ == true) {
-                double cycle_duration_ms = (gait_waypoints.size()*waypoint_dt - IK_bufferTime)*1000;
+                double cycle_duration_ms = (gait_waypoints.size()*waypoint_dt_walk - IK_bufferTime)*1000;
                 if (cycle_duration_ms <= 0) {
                     RCLCPP_ERROR(get_logger(), "CubicDoggoLifecycleManager:controlLoop_(): "
                                                "negative cycle duration, waypoint_N*waypoint_dt < IK_befferTime");
@@ -682,10 +700,7 @@ private:
     std::atomic<double> to_target_dist_{0.0};
     std::atomic<double> to_target_dist_thres_{0.01};
 
-    rclcpp::Subscription<sensor_msgs::msg::JointState>::SharedPtr joint_state_subscriber_;
-    moveit::core::RobotStatePtr shadow_state_;
-    std::mutex state_mutex_;
-    
+    int update_rate_ = 100;  
     rclcpp::Service<std_srvs::srv::Trigger>::SharedPtr state_service_;
     rclcpp::Service<std_srvs::srv::SetBool>::SharedPtr walk_service_; 
     moveit::core::RobotStatePtr last_walk_state_;
@@ -703,8 +718,11 @@ private:
     rclcpp_action::Client<ExecuteTrajectory>::SharedPtr                 exec_action_client_;
 
     control_toolbox::Pid pitch_pid_, roll_pid_;
-    std::atomic<double> current_pitch_{0.0};
-    std::atomic<double> current_roll_{0.0};
+    std::atomic<double> raw_pitch_{0.0};
+    std::atomic<double> raw_roll_ {0.0};
+    std::atomic<double> smooth_pitch_{0.0};
+    std::atomic<double> smooth_roll_ {0.0};
+    double last_smooth_pitch_, last_smooth_roll_;
     rclcpp::Subscription<sensor_msgs::msg::Imu>::SharedPtr imu_subscriber_;
     std::array<double, legN> imu_z_corr_{};
 };
