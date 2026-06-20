@@ -477,17 +477,17 @@ private:
         aw_strat.i_max =  0.03;
         aw_strat.i_min = -0.03;
         double kP = 0.0015, kI = 0.005, kD = 0.0001; 
-        double corr_thres = 0.3, corr_limit = 0.025;
+        double corr_d_thres = 0.3, corr_z_limit = 0.025;        // threshold on pitch/roll, limit on +/- z
         double pitch_shift = 1.0, roll_shift = -3.0;
 
-        auto loop_rate = rclcpp::WallRate(update_rate_);    // Hz, for consistent loop rate
+        auto loop_rate = rclcpp::WallRate(update_rate_);        // Hz, for consistent loop rate
         double maxVelScale = 1.0, maxAccScale = 1.0;
-        int    waypoint_N_walk   = 100;                        // number of waypoints for each cycle
-        double waypoint_dt_walk  = 1.0/double(update_rate_);   // second for each waypoint, to match loop rate
-        int    waypoint_N_stand  = 1;                          // standing require immidiate reaction
-        double waypoint_dt_stand = 1.0/double(update_rate_);   // standing require faster trajectory
-        double IK_bufferTime     = 0.10;                       // time at end of cycle buffer for IK calc
-        double swing_fraction    = 0.50;                       // creep < 0.25 < stable trot < 0.5 < trot
+        int    waypoint_N_walk   = 100;                         // number of waypoints for each cycle
+        double waypoint_dt_walk  = 1.0/double(update_rate_);    // second for each waypoint, to match loop rate
+        int    waypoint_N_stand  = 1;                           // standing require immidiate reaction
+        double waypoint_dt_stand = 1.0/double(update_rate_);    // standing require faster trajectory
+        double IK_bufferTime     = 0.10;                        // time at end of cycle buffer for IK calc
+        double swing_fraction    = 0.50;                        // creep < 0.25 < stable trot < 0.5 < trot
         double lift = 0.02, x_stride_max = 0.02, y_stride_max = 0.025, x_shift = 0.008, y_shift = -0.01;
         //////////////////////////////////////////////////////////////////////////////////////////////////////////////
         pitch_pid_.set_gains(kP, kI, 0.0, aw_strat.i_max, aw_strat.i_min, aw_strat);     //P, I, D, upp, low
@@ -550,10 +550,10 @@ private:
             last_smooth_roll_  = smooth_roll;
             double pitch_corr = pitch_pid_.compute_command(raw_pitch, delta_t) - kD*pitch_velocity;
             double roll_corr  = roll_pid_ .compute_command(raw_roll,  delta_t) - kD*roll_velocity;
-            if (std::abs(raw_pitch) < corr_thres) pitch_corr = 0.0;
-            if (std::abs(raw_roll)  < corr_thres) roll_corr  = 0.0;
-            pitch_corr = std::clamp(pitch_corr, -corr_limit, corr_limit);
-            roll_corr  = std::clamp(roll_corr,  -corr_limit, corr_limit);
+            if (std::abs(raw_pitch) < corr_d_thres) pitch_corr = 0.0;
+            if (std::abs(raw_roll)  < corr_d_thres) roll_corr  = 0.0;
+            pitch_corr = std::clamp(pitch_corr, -corr_z_limit, corr_z_limit);
+            roll_corr  = std::clamp(roll_corr,  -corr_z_limit, corr_z_limit);
             // NOTE: FL, FR, BL, BR, watch out for direction!!!
             imu_z_corr_[0] = +pitch_corr + roll_corr;
             imu_z_corr_[1] = -pitch_corr + roll_corr;
