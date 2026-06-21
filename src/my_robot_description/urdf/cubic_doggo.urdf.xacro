@@ -10,7 +10,7 @@
     <link name="base_link">
         <visual>
             <geometry>
-                <mesh filename="package://my_robot_description/mesh/CADv1/baseTorso.stl" scale="0.001 0.001 0.001"/>
+                <mesh filename="package://my_robot_description/mesh/CADv2/baseTorso.stl" scale="0.001 0.001 0.001"/>
             </geometry>
             <origin xyz="0 0 0" rpy="0 0 0"/>
             <material name="grey"/>
@@ -32,7 +32,7 @@
     <link name="base_plate_B">
         <visual>
             <geometry>
-                <mesh filename="package://my_robot_description/mesh/CADv1/basePlate.stl" scale="0.001 0.001 0.001"/>
+                <mesh filename="package://my_robot_description/mesh/CADv2/basePlate.stl" scale="0.001 0.001 0.001"/>
             </geometry>
             <origin xyz="0 0 0" rpy="0 0 0"/>
             <material name="grey"/>
@@ -54,7 +54,7 @@
     <link name="base_plate_F">
         <visual>
             <geometry>
-                <mesh filename="package://my_robot_description/mesh/CADv1/basePlate.stl" scale="0.001 0.001 0.001"/>
+                <mesh filename="package://my_robot_description/mesh/CADv2/basePlate.stl" scale="0.001 0.001 0.001"/>
             </geometry>
             <origin xyz="0 0 0" rpy="0 0 0"/>
             <material name="grey"/>

@@ -105,7 +105,7 @@ namespace cubic_doggo_namespace {
                 dxl_wb_.itemWrite(servo_channels_[servo_idx], "Position_D_Gain", 50,  &log_);
             } else {
                 dxl_wb_.itemWrite(servo_channels_[servo_idx], "Current_Limit",   900, &log_);// torque: current limit
-                dxl_wb_.itemWrite(servo_channels_[servo_idx], "Position_P_Gain", 800, &log_); // PID
+                dxl_wb_.itemWrite(servo_channels_[servo_idx], "Position_P_Gain", 600, &log_); // PID
                 dxl_wb_.itemWrite(servo_channels_[servo_idx], "Position_D_Gain", 100, &log_); // PID
             }
         }

@@ -177,15 +177,18 @@ public:
             double roll, pitch, yaw;
             matrixObj.getRPY(roll, pitch, yaw);
  
-            double raw_pitch = pitch * (180.0 / M_PI);
-            double raw_roll  = roll  * (180.0 / M_PI);
-            raw_pitch_.store(raw_pitch);
-            raw_roll_ .store(raw_roll);
-            double alpha = 0.3;                             // adjust between 0.0 and 1.0, lower the smoother
-            double smoothed_pitch = alpha*raw_pitch + (1.0 - alpha)*smooth_pitch_.load();
-            double smoothed_roll  = alpha*raw_roll  + (1.0 - alpha)*smooth_roll_.load();
-            smooth_pitch_.store(smoothed_pitch);
-            smooth_roll_.store(smoothed_roll);
+            double raw_pitch = pitch*(180.0/M_PI);
+            double raw_roll  = roll *(180.0/M_PI);
+            double fast_alpha = 0.8;                    // adjust between 0.0 and 1.0, lower the smoother
+            double fast_pitch = fast_alpha*raw_pitch + (1.0 - fast_alpha)*fast_pitch_.load();
+            double fast_roll  = fast_alpha*raw_roll  + (1.0 - fast_alpha)*fast_roll_.load();
+            fast_pitch_.store(fast_pitch);
+            fast_roll_ .store(fast_roll);
+            double slow_alpha = 0.2;
+            double slow_pitch = slow_alpha*raw_pitch + (1.0 - slow_alpha)*slow_pitch_.load();
+            double slow_roll  = slow_alpha*raw_roll  + (1.0 - slow_alpha)*slow_roll_.load();
+            slow_pitch_.store(slow_pitch);
+            slow_roll_ .store(slow_roll);
         });
 
         keep_running_thread_ = true;
@@ -476,7 +479,7 @@ private:
         aw_strat.type = control_toolbox::AntiWindupStrategy::CONDITIONAL_INTEGRATION;
         aw_strat.i_max =  0.03;
         aw_strat.i_min = -0.03;
-        double kP = 0.0015, kI = 0.005, kD = 0.0001; 
+        double kP = 0.0016, kI = 0.0, kD = 0.001; 
         double corr_d_thres = 0.3, corr_z_limit = 0.025;        // threshold on pitch/roll, limit on +/- z
         double pitch_shift = 1.0, roll_shift = -3.0;
 
@@ -513,7 +516,7 @@ private:
                                       is_walking_.load(), control_initialized_.load(), idle_name_.c_str());
             RCLCPP_INFO(get_logger(), "CubicDoggoLifecycleManager:controlLoop_(): "
                                       "raw pitch = %lf, raw roll = %lf", 
-                                      raw_pitch_.load(), raw_roll_.load());
+                                      fast_pitch_.load(), fast_roll_.load());
 
             if ((is_busy_ == true) || ((is_walking_ == false) && (idle_name_ != "stand"))) {
                 std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -532,35 +535,36 @@ private:
                     home_z_[legIdx] = endEffector_z_[legIdx];
                 }
 
-                last_smooth_pitch_ = smooth_pitch_.load() - pitch_shift;
-                last_smooth_roll_  = smooth_roll_.load()  - roll_shift;
+                last_slow_pitch_ = slow_pitch_.load() - pitch_shift;
+                last_slow_roll_  = slow_roll_.load()  - roll_shift;
                 pitch_pid_.reset();
                 roll_pid_ .reset();
                 control_initialized_ = true;    
                 RCLCPP_INFO(get_logger(), "CubicDoggoLifecycleManager:controlLoop_(): home positions captured.");
             }
         
-            double raw_pitch = raw_pitch_.load() - pitch_shift;      // ensure tilt rightward
-            double raw_roll  = raw_roll_.load()  - roll_shift;       // ensure tilt backward
-            double smooth_pitch = smooth_pitch_.load() - pitch_shift;      // ensure tilt rightward
-            double smooth_roll  = smooth_roll_.load()  - roll_shift;       // ensure tilt backward
-            double pitch_velocity = (smooth_pitch - last_smooth_pitch_)*update_rate_;
-            double roll_velocity  = (smooth_roll  - last_smooth_roll_) *update_rate_;
-            last_smooth_pitch_ = smooth_pitch;
-            last_smooth_roll_  = smooth_roll;
-            double pitch_corr = pitch_pid_.compute_command(raw_pitch, delta_t) - kD*pitch_velocity;
-            double roll_corr  = roll_pid_ .compute_command(raw_roll,  delta_t) - kD*roll_velocity;
-            if (std::abs(raw_pitch) < corr_d_thres) pitch_corr = 0.0;
-            if (std::abs(raw_roll)  < corr_d_thres) roll_corr  = 0.0;
+            double fast_pitch   = fast_pitch_.load() - pitch_shift;      // ensure tilt rightward
+            double fast_roll    = fast_roll_.load()  - roll_shift;       // ensure tilt backward
+            double slow_pitch   = slow_pitch_.load() - pitch_shift;      // ensure tilt rightward
+            double slow_roll    = slow_roll_.load()  - roll_shift;       // ensure tilt backward
+            double pitch_velocity = (slow_pitch - last_slow_pitch_)*update_rate_;
+            double roll_velocity  = (slow_roll  - last_slow_roll_) *update_rate_;
+            last_slow_pitch_ = slow_pitch;
+            last_slow_roll_  = slow_roll;
+            double pitch_corr = pitch_pid_.compute_command(fast_pitch, delta_t) - kD*pitch_velocity;
+            double roll_corr  = roll_pid_ .compute_command(fast_roll,  delta_t) - kD*roll_velocity;
+            //if (std::abs(fast_pitch) < corr_d_thres) pitch_pid_.reset();//pitch_corr = 0.0;
+            //if (std::abs(fast_roll)  < corr_d_thres) roll_pid_.reset();//roll_corr  = 0.0;
+            pitch_corr *= std::clamp(std::fabs(fast_pitch)/corr_d_thres, 0.0, 1.0);
+            roll_corr  *= std::clamp(std::fabs(fast_roll) /corr_d_thres, 0.0, 1.0);
             pitch_corr = std::clamp(pitch_corr, -corr_z_limit, corr_z_limit);
             roll_corr  = std::clamp(roll_corr,  -corr_z_limit, corr_z_limit);
-            // NOTE: FL, FR, BL, BR, watch out for direction!!!
-            imu_z_corr_[0] = +pitch_corr + roll_corr;
+            imu_z_corr_[0] = +pitch_corr + roll_corr;           // NOTE: FL, FR, BL, BR, watch out for direction!!!
             imu_z_corr_[1] = -pitch_corr + roll_corr;
             imu_z_corr_[2] = +pitch_corr - roll_corr;
             imu_z_corr_[3] = -pitch_corr - roll_corr;
             RCLCPP_INFO(get_logger(), "CubicDoggoLifecycleManager:controlLoop_(): pitch = %lf, roll = %lf",
-                                      raw_pitch, raw_roll);
+                                      fast_pitch, fast_roll);
             RCLCPP_INFO(get_logger(), "CubicDoggoLifecycleManager:controlLoop_(): "
                                       "pitch_corr = %lf (kD corr: %lf), roll_corr = %lf (kD corr: %lf)",
                                       pitch_corr, kD*pitch_velocity, roll_corr,kD*roll_velocity);
@@ -718,11 +722,11 @@ private:
     rclcpp_action::Client<ExecuteTrajectory>::SharedPtr                 exec_action_client_;
 
     control_toolbox::Pid pitch_pid_, roll_pid_;
-    std::atomic<double> raw_pitch_{0.0};
-    std::atomic<double> raw_roll_ {0.0};
-    std::atomic<double> smooth_pitch_{0.0};
-    std::atomic<double> smooth_roll_ {0.0};
-    double last_smooth_pitch_, last_smooth_roll_;
+    std::atomic<double> fast_pitch_{0.0};
+    std::atomic<double> fast_roll_ {0.0};
+    std::atomic<double> slow_pitch_{0.0};
+    std::atomic<double> slow_roll_ {0.0};
+    double last_slow_pitch_, last_slow_roll_;
     rclcpp::Subscription<sensor_msgs::msg::Imu>::SharedPtr imu_subscriber_;
     std::array<double, legN> imu_z_corr_{};
 };
