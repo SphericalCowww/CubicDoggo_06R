@@ -173,7 +173,7 @@ public:
             matrixObj.getRPY(roll, pitch, yaw);
             double raw_pitch = pitch*(180.0/M_PI);
             double raw_roll  = roll *(180.0/M_PI);
-            double alpha = 0.8;                    // adjust between 0.0 and 1.0, lower the smoother
+            double alpha = 1.0;                    // [0.0, 1.0], lower the smoother but with lags
             double current_pitch = alpha*raw_pitch + (1.0 - alpha)*current_pitch_.load();
             double current_roll  = alpha*raw_roll  + (1.0 - alpha)*current_roll_.load();
             current_pitch_.store(current_pitch, std::memory_order_relaxed);
@@ -181,9 +181,8 @@ public:
 
             double raw_pitch_vel = msg->angular_velocity.y*(180.0/M_PI);
             double raw_roll_vel  = msg->angular_velocity.x*(180.0/M_PI);
-            double vel_alpha = 0.1;
-            double current_pitch_vel = vel_alpha*raw_pitch_vel + (1.0 - vel_alpha)*current_pitch_vel_.load();
-            double current_roll_vel  = vel_alpha*raw_roll_vel  + (1.0 - vel_alpha)*current_roll_vel_.load();
+            double current_pitch_vel = alpha*raw_pitch_vel + (1.0 - alpha)*current_pitch_vel_.load();// share alpha
+            double current_roll_vel  = alpha*raw_roll_vel  + (1.0 - alpha)*current_roll_vel_.load(); // for phase sync
             current_pitch_vel_.store(current_pitch_vel, std::memory_order_relaxed);
             current_roll_vel_ .store(current_roll_vel,  std::memory_order_relaxed);
         });
