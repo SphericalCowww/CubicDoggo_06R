@@ -4,11 +4,11 @@
   <Tab containers="1" tab_name="Cubic Doggo">
    <Container>
     <DockSplitter count="1" orientation="-" sizes="1">
-     <DockSplitter count="2" orientation="|" sizes="0.500719;0.499281">
-      <DockSplitter count="2" orientation="-" sizes="0.5;0.5">
+     <DockSplitter count="2" orientation="|" sizes="0.500785;0.499215">
+      <DockSplitter count="3" orientation="-" sizes="0.300693;0.29896;0.400347">
        <DockArea name="position">
         <plot flip_x="false" flip_y="false" line_width="1.0" mode="TimeSeries">
-         <range bottom="1.608350" left="0.000000" right="13.000697" top="4.687110"/>
+         <range bottom="2.104599" left="115.303871" right="124.643605" top="4.189327"/>
          <limitY/>
          <curve color="#f14cc1" name="/joint_states/servo1_servo1_padding_FL/position"/>
          <curve color="#9467bd" name="/joint_states/servo2_servo2_padding_FL/position"/>
@@ -24,9 +24,27 @@
          <curve color="#bcbd22" name="/joint_states/servo3_calfFeet_BR/position"/>
         </plot>
        </DockArea>
+       <DockArea name="velocity">
+        <plot flip_x="false" flip_y="false" line_width="1.0" mode="TimeSeries">
+         <range bottom="-0.724607" left="115.303871" right="124.643605" top="2.026800"/>
+         <limitY/>
+         <curve color="#1f77b4" name="/joint_states/servo1_servo1_padding_FL/velocity"/>
+         <curve color="#d62728" name="/joint_states/servo2_servo2_padding_FL/velocity"/>
+         <curve color="#1ac938" name="/joint_states/servo3_calfFeet_FL/velocity"/>
+         <curve color="#ff7f0e" name="/joint_states/servo1_servo1_padding_FR/velocity"/>
+         <curve color="#f14cc1" name="/joint_states/servo2_servo2_padding_FR/velocity"/>
+         <curve color="#9467bd" name="/joint_states/servo3_calfFeet_FR/velocity"/>
+         <curve color="#17becf" name="/joint_states/servo1_servo1_padding_BL/velocity"/>
+         <curve color="#bcbd22" name="/joint_states/servo2_servo2_padding_BL/velocity"/>
+         <curve color="#1f77b4" name="/joint_states/servo3_calfFeet_BL/velocity"/>
+         <curve color="#d62728" name="/joint_states/servo1_servo1_padding_BR/velocity"/>
+         <curve color="#1ac938" name="/joint_states/servo2_servo2_padding_BR/velocity"/>
+         <curve color="#ff7f0e" name="/joint_states/servo3_calfFeet_BR/velocity"/>
+        </plot>
+       </DockArea>
        <DockArea name="effort">
         <plot flip_x="false" flip_y="false" line_width="1.0" mode="TimeSeries">
-         <range bottom="-671.850000" left="0.000000" right="13.000697" top="665.850000"/>
+         <range bottom="-169.300000" left="115.303871" right="124.643605" top="179.300000"/>
          <limitY/>
          <curve color="#1f77b4" name="/joint_states/servo1_servo1_padding_FL/effort"/>
          <curve color="#d62728" name="/joint_states/servo2_servo2_padding_FL/effort"/>
@@ -43,35 +61,23 @@
         </plot>
        </DockArea>
       </DockSplitter>
-      <DockSplitter count="2" orientation="-" sizes="0.5;0.5">
-       <DockArea name="velocity">
-        <plot flip_x="false" flip_y="false" line_width="1.0" mode="TimeSeries">
-         <range bottom="-6.839331" left="0.000000" right="13.000697" top="6.455638"/>
-         <limitY/>
-         <curve color="#1f77b4" name="/joint_states/servo1_servo1_padding_FL/velocity"/>
-         <curve color="#d62728" name="/joint_states/servo2_servo2_padding_FL/velocity"/>
-         <curve color="#1ac938" name="/joint_states/servo3_calfFeet_FL/velocity"/>
-         <curve color="#ff7f0e" name="/joint_states/servo1_servo1_padding_FR/velocity"/>
-         <curve color="#f14cc1" name="/joint_states/servo2_servo2_padding_FR/velocity"/>
-         <curve color="#9467bd" name="/joint_states/servo3_calfFeet_FR/velocity"/>
-         <curve color="#17becf" name="/joint_states/servo1_servo1_padding_BL/velocity"/>
-         <curve color="#bcbd22" name="/joint_states/servo2_servo2_padding_BL/velocity"/>
-         <curve color="#1f77b4" name="/joint_states/servo3_calfFeet_BL/velocity"/>
-         <curve color="#d62728" name="/joint_states/servo1_servo1_padding_BR/velocity"/>
-         <curve color="#1ac938" name="/joint_states/servo2_servo2_padding_BR/velocity"/>
-         <curve color="#ff7f0e" name="/joint_states/servo3_calfFeet_BR/velocity"/>
-        </plot>
-       </DockArea>
+      <DockSplitter count="2" orientation="-" sizes="0.500433;0.499567">
        <DockArea name="imu">
         <plot flip_x="false" flip_y="false" line_width="1.0" mode="TimeSeries">
-         <range bottom="-122.679690" left="0.000000" right="13.000697" top="136.867190"/>
+         <range bottom="-5.184684" left="115.303871" right="124.643605" top="1.397727"/>
          <limitY/>
-         <curve color="#d62728" name="pitch_deg"/>
-         <curve color="#1ac938" name="roll_deg"/>
-         <curve color="#ff7f0e" name="yaw_deg"/>
-         <curve color="#1f77b4" name="pitch_vel_deg"/>
-         <curve color="#d62728" name="roll_vel_deg"/>
-         <curve color="#1ac938" name="yaw_vel_deg"/>
+         <curve color="#1f77b4" name="pitch_deg"/>
+         <curve color="#d62728" name="roll_deg"/>
+         <curve color="#1ac938" name="yaw_deg"/>
+        </plot>
+       </DockArea>
+       <DockArea name="imu vel">
+        <plot flip_x="false" flip_y="false" line_width="1.0" mode="TimeSeries">
+         <range bottom="-26.390625" left="115.303871" right="124.643605" top="11.015625"/>
+         <limitY/>
+         <curve color="#ff7f0e" name="pitch_vel_deg"/>
+         <curve color="#f14cc1" name="roll_vel_deg"/>
+         <curve color="#9467bd" name="yaw_vel_deg"/>
         </plot>
        </DockArea>
       </DockSplitter>
@@ -211,35 +217,12 @@ end
  <previouslyLoaded_Streamer name="ROS2 Topic Subscriber"/>
  <!-- - - - - - - - - - - - - - - -->
  <customMathEquations>
-  <snippet language="LUA" name="yaw_vel_deg">
-   <global></global>
-   <function>return value * 180 / 3.1415926</function>
-   <linked_source>/imu_broadcaster/imu/angular_velocity/z</linked_source>
-  </snippet>
-  <snippet language="LUA" name="roll_vel_deg">
-   <global></global>
-   <function>return value * 180 / 3.1415926</function>
-   <linked_source>/imu_broadcaster/imu/angular_velocity/x</linked_source>
-  </snippet>
-  <snippet language="LUA" name="pitch_vel_deg">
-   <global></global>
-   <function>return value * 180 / 3.1415926</function>
-   <linked_source>/imu_broadcaster/imu/angular_velocity/y</linked_source>
-   <additional_sources>
-    <v1>/imu_broadcaster/imu/angular_velocity/y</v1>
-   </additional_sources>
-  </snippet>
-  <snippet language="LUA" name="yaw_deg">
+  <snippet language="LUA" name="yaw_degree">
    <global></global>
    <function>return value * 180 / 3.1415926</function>
    <linked_source>/imu_broadcaster/imu/orientation/yaw</linked_source>
   </snippet>
-  <snippet language="LUA" name="roll_deg">
-   <global></global>
-   <function>return value * 180 / 3.1415926</function>
-   <linked_source>/imu_broadcaster/imu/orientation/roll</linked_source>
-  </snippet>
-  <snippet language="LUA" name="pitch_deg">
+  <snippet language="LUA" name="pitch_degree">
    <global></global>
    <function>return value * 180 / 3.1415926</function>
    <linked_source>/imu_broadcaster/imu/orientation/pitch</linked_source>
@@ -249,15 +232,38 @@ end
    <function>return value * 180 / 3.1415926</function>
    <linked_source>/imu_broadcaster/imu/orientation/roll</linked_source>
   </snippet>
-  <snippet language="LUA" name="pitch_degree">
+  <snippet language="LUA" name="pitch_deg">
    <global></global>
    <function>return value * 180 / 3.1415926</function>
    <linked_source>/imu_broadcaster/imu/orientation/pitch</linked_source>
   </snippet>
-  <snippet language="LUA" name="yaw_degree">
+  <snippet language="LUA" name="roll_deg">
+   <global></global>
+   <function>return value * 180 / 3.1415926</function>
+   <linked_source>/imu_broadcaster/imu/orientation/roll</linked_source>
+  </snippet>
+  <snippet language="LUA" name="yaw_deg">
    <global></global>
    <function>return value * 180 / 3.1415926</function>
    <linked_source>/imu_broadcaster/imu/orientation/yaw</linked_source>
+  </snippet>
+  <snippet language="LUA" name="pitch_vel_deg">
+   <global></global>
+   <function>return value * 180 / 3.1415926</function>
+   <linked_source>/imu_broadcaster/imu/angular_velocity/y</linked_source>
+   <additional_sources>
+    <v1>/imu_broadcaster/imu/angular_velocity/y</v1>
+   </additional_sources>
+  </snippet>
+  <snippet language="LUA" name="roll_vel_deg">
+   <global></global>
+   <function>return value * 180 / 3.1415926</function>
+   <linked_source>/imu_broadcaster/imu/angular_velocity/x</linked_source>
+  </snippet>
+  <snippet language="LUA" name="yaw_vel_deg">
+   <global></global>
+   <function>return value * 180 / 3.1415926</function>
+   <linked_source>/imu_broadcaster/imu/angular_velocity/z</linked_source>
   </snippet>
  </customMathEquations>
  <snippets/>

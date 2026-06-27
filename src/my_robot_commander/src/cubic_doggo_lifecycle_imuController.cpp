@@ -173,7 +173,7 @@ public:
             matrixObj.getRPY(roll, pitch, yaw);
             double raw_pitch = pitch*(180.0/M_PI);
             double raw_roll  = roll *(180.0/M_PI);
-            double alpha = 1.0;                    // [0.0, 1.0], lower the smoother but with lags
+            double alpha = 0.8;                    // [0.0, 1.0], lower the smoother but with lags
             double current_pitch = alpha*raw_pitch + (1.0 - alpha)*current_pitch_.load();
             double current_roll  = alpha*raw_roll  + (1.0 - alpha)*current_roll_.load();
             current_pitch_.store(current_pitch, std::memory_order_relaxed);
@@ -468,16 +468,17 @@ private:
         response->message = is_walking_ ? "walking started" : "walking stopped";
     }
     void controlLoop_() {
-        //rclcpp::get_logger("").set_level(rclcpp::Logger::Level::Warn);        // for silencing output
+        rclcpp::get_logger("").set_level(rclcpp::Logger::Level::Warn);        // for silencing output
 
         // https://docs.ros.org/en/jazzy/p/control_toolbox/generated/structcontrol__toolbox_1_1AntiWindupStrategy.html
         control_toolbox::AntiWindupStrategy aw_strat;
         aw_strat.type = control_toolbox::AntiWindupStrategy::CONDITIONAL_INTEGRATION;
-        aw_strat.i_max =  0.03;
-        aw_strat.i_min = -0.03;
-        double kP = 0.0016, kI = 0.0, kD = 0.0; 
-        double corr_v_thres = 1.0, corr_d_thres = 0.3;              // threshold on pitch/roll and their vel 
-        double corr_z_limit_kD = 0.005, corr_z_limit = 0.025;       // limit on +/- z
+        aw_strat.i_max =  0.05;
+        aw_strat.i_min = -0.05;
+        //double kP = 0.0002, kI = 0.0008, kD = 0.00005;     // NOTE: PID 
+        double kP = 0.0016, kI = 0.0, kD = 0.0;     // NOTE: PID
+        double corr_v_thres = 3.0, corr_d_thres = 1.0;              // threshold on pitch/roll and their vel 
+        double corr_z_limit_kD = 0.01, corr_z_limit = 0.025;       // limit on +/- z
         double pitch_shift = 1.0, roll_shift = -2.0;
 
         auto loop_rate = rclcpp::WallRate(update_rate_);        // Hz, for consistent loop rate
@@ -508,11 +509,11 @@ private:
             }
             
             previous_time = current_time;
-            RCLCPP_INFO(get_logger(), "CubicDoggoLifecycleManager:controlLoop_(): "
+            RCLCPP_INFO(get_logger(), "CubicDoggoLifecycleManager:controlLoop_(): time = %d\n"
                                       "is_walking_ = %d, control_initialized_ = %d, idle_name_ = %s", 
-                                      is_walking_.load(), control_initialized_.load(), idle_name_.c_str());
+                                      current_time,is_walking_.load(),control_initialized_.load(),idle_name_.c_str());
             RCLCPP_INFO(get_logger(), "CubicDoggoLifecycleManager:controlLoop_(): "
-                                      "current pitch = %lf, roll = %lf", 
+                                      "raw pitch = %lf, raw roll = %lf", 
                                       current_pitch_.load(std::memory_order_relaxed), 
                                       current_roll_ .load(std::memory_order_relaxed));
 
@@ -546,8 +547,10 @@ private:
             current_roll_vel  *= std::clamp(std::fabs(current_roll_vel) /corr_v_thres, 0.0, 1.0);
             double pitch_corr = pitch_pid_.compute_command(current_pitch, delta_t);
             double roll_corr  = roll_pid_ .compute_command(current_roll,  delta_t);
-            pitch_corr -= std::clamp(kD*current_pitch_vel, -corr_z_limit_kD, corr_z_limit_kD);
-            roll_corr  -= std::clamp(kD*current_roll_vel, -corr_z_limit_kD, corr_z_limit_kD);
+            double pitch_corr_vel = std::clamp(kD*current_pitch_vel, -corr_z_limit_kD, corr_z_limit_kD);
+            double roll_corr_vel  = std::clamp(kD*current_roll_vel,  -corr_z_limit_kD, corr_z_limit_kD); 
+            pitch_corr += pitch_corr_vel;
+            roll_corr  += roll_corr_vel;
             pitch_corr *= std::clamp(std::fabs(current_pitch)/corr_d_thres, 0.0, 1.0);
             roll_corr  *= std::clamp(std::fabs(current_roll) /corr_d_thres, 0.0, 1.0);
             pitch_corr  = std::clamp(pitch_corr, -corr_z_limit, corr_z_limit);
@@ -556,12 +559,12 @@ private:
             imu_z_corr_[1] = -pitch_corr + roll_corr;
             imu_z_corr_[2] = +pitch_corr - roll_corr;
             imu_z_corr_[3] = -pitch_corr - roll_corr;
-            RCLCPP_INFO(get_logger(), "CubicDoggoLifecycleManager:controlLoop_(): current pitch = %lf, roll = %lf",
-                                      current_pitch, current_roll);
-            RCLCPP_INFO(get_logger(), "CubicDoggoLifecycleManager:controlLoop_(): "
-                                      "pitch_corr = %lf (kD corr: %lf), roll_corr = %lf (kD corr: %lf)",
-                                      pitch_corr, kD*current_pitch_vel_.load(),roll_corr,kD*current_roll_vel_.load());
-            RCLCPP_INFO(get_logger(), "CubicDoggoLifecycleManager:controlLoop_(): imu_z_corr = [%lf, %lf, %lf, %lf]",
+            RCLCPP_INFO(get_logger(), "CubicDoggoLifecycleManager:controlLoop_():\n"
+                                      "shifted pitch = %lf (vel = %lf), shifted roll = %lf (vel = %lf)\n"
+                                      "full pitch corr = %lf (kD corr = %lf), full roll corr = %lf (kD corr = %lf)\n"
+                                      "imu_z_corr = [%lf, %lf, %lf, %lf]",
+                                      current_pitch, current_pitch_vel, current_roll, current_roll_vel,
+                                      pitch_corr, pitch_corr_vel, roll_corr, roll_corr_vel,
                                       imu_z_corr_[0], imu_z_corr_[1], imu_z_corr_[2], imu_z_corr_[3]);
             
             std::vector<moveit::core::RobotStatePtr> gait_waypoints;
@@ -604,8 +607,9 @@ private:
                                                "negative cycle duration, waypoint_N*waypoint_dt < IK_befferTime");
                 }
                 std::this_thread::sleep_for(std::chrono::milliseconds(static_cast<int>(cycle_duration_ms)));
+            } else {
+                loop_rate.sleep();
             }
-            loop_rate.sleep();
         }
     }
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
