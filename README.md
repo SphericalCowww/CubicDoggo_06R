@@ -192,6 +192,11 @@ Check out all the gait options under ``CubicDoggo_06R/src/my_robot_commander/src
 
 ### IMU balancing
 
+Configuration (update the code if direction differs):
+
+    roll, negative when tilting forward
+    pitch, negative when tilting leftward
+
 Checking loop speed for latency, including IK calculation and IMU readout:
 
     ros2 topic hz /joint_states
