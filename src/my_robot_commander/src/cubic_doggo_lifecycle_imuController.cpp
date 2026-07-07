@@ -475,15 +475,15 @@ private:
         aw_strat.type = control_toolbox::AntiWindupStrategy::CONDITIONAL_INTEGRATION;
         aw_strat.i_max =  0.05;
         aw_strat.i_min = -0.05;
-        //double kP = 0.0002, kI = 0.0008, kD = 0.00005;     // NOTE: PID 
-        double kP = 0.0016, kI = 0.0, kD = 0.0;     // NOTE: PID
+        double kP = 0.0002, kI = 0.0008, kD = 0.00005;     // NOTE: PID 
+        //double kP = 0.0016, kI = 0.0, kD = 0.0;     // NOTE: PID
         double corr_v_thres = 3.0, corr_d_thres = 1.0;              // threshold on pitch/roll and their vel 
         double corr_z_limit_kD = 0.01, corr_z_limit = 0.025;       // limit on +/- z
         double pitch_shift = 1.0, roll_shift = -2.0;
 
         auto loop_rate = rclcpp::WallRate(update_rate_);        // Hz, for consistent loop rate
         double maxVelScale = 1.0, maxAccScale = 1.0;
-        int    waypoint_N_walk   = 100;                         // number of waypoints for each cycle
+        int    waypoint_N_walk   = update_rate_;                // number of waypoints for each cycle
         double waypoint_dt_walk  = 1.0/double(update_rate_);    // second for each waypoint, to match loop rate
         int    waypoint_N_stand  = 1;                           // standing require immidiate reaction
         double waypoint_dt_stand = 1.0/double(update_rate_);    // standing require faster trajectory
@@ -509,9 +509,10 @@ private:
             }
             
             previous_time = current_time;
-            RCLCPP_INFO(get_logger(), "CubicDoggoLifecycleManager:controlLoop_(): time = %d\n"
+            RCLCPP_INFO(get_logger(), "CubicDoggoLifecycleManager:controlLoop_(): time = %lf\n"
                                       "is_walking_ = %d, control_initialized_ = %d, idle_name_ = %s", 
-                                      current_time,is_walking_.load(),control_initialized_.load(),idle_name_.c_str());
+                                      current_time.seconds(), is_walking_.load(), control_initialized_.load(),
+                                      idle_name_.c_str());
             RCLCPP_INFO(get_logger(), "CubicDoggoLifecycleManager:controlLoop_(): "
                                       "raw pitch = %lf, raw roll = %lf", 
                                       current_pitch_.load(std::memory_order_relaxed), 
