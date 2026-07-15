@@ -148,8 +148,8 @@ public:
 
         imu_subscriber_ = create_subscription<geometry_msgs::msg::Vector3>(
             "imu/euler", 10, [this](const geometry_msgs::msg::Vector3::SharedPtr msg) {
-            current_pitch_ = msg->y;            // + when tilting leftwards
-            current_roll_  = msg->x;            // + when tilting forwards 
+            current_pitch_ = msg->y;            // + when tilting forwards 
+            current_roll_  = msg->x;            // + when tilting leftwards 
         });
 
         keep_running_thread_ = true;
@@ -428,18 +428,16 @@ private:
         control_toolbox::Pid pitch_pid, roll_pid;
         control_toolbox::AntiWindupStrategy aw_strat;
         aw_strat.type = control_toolbox::AntiWindupStrategy::CONDITIONAL_INTEGRATION;
-        aw_strat.i_max =  0.02;
+        aw_strat.i_max = 0.02;
         aw_strat.i_min = -0.02;
-        pitch_pid.set_gains(0.0015, 0.001, 0.00005, 0.03, -0.03, aw_strat);
-        roll_pid .set_gains(0.0015, 0.001, 0.00005, 0.03, -0.03, aw_strat);
-        double pitch_shift = 0.0, roll_shift = 3.0;     // shift in degrees 
+        pitch_pid.set_gains(0.0016, 0.000, 0.0, 0.02, -0.02, aw_strat);
+        roll_pid .set_gains(0.0016, 0.000, 0.0, 0.02, -0.02, aw_strat);
 
-
-        auto loop_rate = rclcpp::WallRate(50);  // Hz, for consistent loop rate, match cubic_doggo_controllers.yaml
+        auto loop_rate = rclcpp::WallRate(50);         // loop buffer (Hz),                        default 100
         double maxVelScale = 1.0, maxAccScale = 1.0;
-        int    waypoint_N     = 100;                    // number of waypoints for each cycle
-        double waypoint_dt    = 0.02;                   // second for each waypoint, to match loop_rate
-        double IK_bufferTime  = 0.10;                   // time at end of cycle buffer for IK calc
+        int    waypoint_N     = 50;                     // number of waypoints for each cycle,      default 100
+        double waypoint_dt    = 0.02;                   // second for each waypoint,                default 0.01
+        double IK_bufferTime  = 0.10;                   // time at end of cycle buffer for IK calc, default 0.10
         double swing_fraction = 0.50;                   // creep < 0.25 < stable trot < 0.5 < trot
         double lift = 0.02, x_stride_max = 0.02, y_stride_max = 0.025, x_shift = 0.008, y_shift = -0.01;
 
@@ -468,7 +466,6 @@ private:
                 continue;
             } else if (control_initialized_ == false) {
                 legNamedTarget_("stand");
-                std::this_thread::sleep_for(std::chrono::milliseconds(100));
                 setDefaultVelAccScaler_(maxVelScale, maxAccScale);
                 loadCurrentRobotState_();
                 last_walk_state_ = std::make_shared<moveit::core::RobotState>(*all_legs_current_robot_state_);
@@ -481,8 +478,8 @@ private:
                 RCLCPP_INFO(get_logger(), "CubicDoggoLifecycleManager:controlLoop_(): home positions captured.");
             }
         
-            double current_pitch = current_pitch_.load() - pitch_shift;
-            double current_roll  = current_roll_.load()  - roll_shift;
+            double current_pitch = current_pitch_.load();
+            double current_roll  = current_roll_.load();
             //double pitch_corr = pitch_pid.update(current_pitch, delta_t);
             //double roll_corr  = roll_pid .update(current_roll,  delta_t);
             double pitch_corr = pitch_pid.compute_command(current_pitch, delta_t);
@@ -496,12 +493,6 @@ private:
                                       current_pitch, current_roll, 
                                       imu_z_corr_[0], imu_z_corr_[1], imu_z_corr_[2], imu_z_corr_[3]);
 
-            // if load fails, just ignore
-            all_legs_current_robot_state_ = all_legs_interface_->getCurrentState(0.01);
-            if (all_legs_current_robot_state_) {
-                last_walk_state_ = all_legs_current_robot_state_;
-            }
-            /////////////////////////////
             std::vector<moveit::core::RobotStatePtr> gait_waypoints;
             if (is_walking_ == true) { 
                 x_stride = target_x_stride_*x_stride_max;
