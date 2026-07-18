@@ -475,8 +475,8 @@ private:
         aw_strat.type = control_toolbox::AntiWindupStrategy::CONDITIONAL_INTEGRATION;
         aw_strat.i_max =  0.05;
         aw_strat.i_min = -0.05;
-        double kP = 0.0002, kI = 0.0008, kD = 0.00005;     // NOTE: PID 
-        //double kP = 0.0016, kI = 0.0, kD = 0.0;     // NOTE: PID
+        //double kP = 0.0002, kI = 0.0008, kD = 0.00005;     // NOTE: PID 
+        double kP = 0.0016, kI = 0.0, kD = 0.0;     // NOTE: PID
         double corr_v_thres = 3.0, corr_d_thres = 1.0;              // threshold on pitch/roll and their vel 
         double corr_z_limit_kD = 0.01, corr_z_limit = 0.025;       // limit on +/- z
         double pitch_shift = 1.0, roll_shift = -2.0;

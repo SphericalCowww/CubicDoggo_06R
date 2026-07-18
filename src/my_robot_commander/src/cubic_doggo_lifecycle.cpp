@@ -399,11 +399,11 @@ private:
     }
     void walkingLoop_() {
         double maxVelScale = 1.0, maxAccScale = 1.0;
-        int    waypoint_N     = 100;       // number of waypoints for each cycle,      default 100
+        int    waypoint_N     = 80;       // number of waypoints for each cycle,      default 100
         double waypoint_dt    = 0.01;      // second for each waypoint,                default 0.01
         double IK_bufferTime  = 0.10;      // time at end of cycle buffer for IK calc, default 0.10
-        double swing_fraction = 0.50;      // creep < 0.25 < stable trot < 0.5 < trot
-        double lift = 0.02, x_stride_max = 0.02, y_stride_max = 0.025, x_shift = 0.0, y_shift = 0.0;
+        double swing_fraction = 0.32;      // creep < 0.25 < stable trot < 0.5 < trot
+        double lift = 0.04, x_stride_max = 0.02, y_stride_max = 0.03, x_shift = 0.0, y_shift = -0.007;
 
         all_legs_robot_model_ = all_legs_interface_->getRobotModel();
         auto joint_model_group = all_legs_robot_model_->getJointModelGroup(all_legs_planning_group_);
