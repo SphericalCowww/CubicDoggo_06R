@@ -315,6 +315,15 @@ private:
                 double target_x = home_x_[legIdx];
                 double target_y = home_y_[legIdx];
                 double target_z = home_z_[legIdx];
+                if (y_stride > 0) {
+                    if (legIdx == 2) {
+                        target_x -= 0.01;
+                    } else if (legIdx == 3) {
+                        target_x += 0.01;
+                    }
+                }
+
+
                 bool is_group_a = ((legIdx == 0) || (legIdx == 3));
                 bool is_group_b = ((legIdx == 1) || (legIdx == 2));
                 bool is_group_backLeg = (legIdx == 2 || legIdx == 3);

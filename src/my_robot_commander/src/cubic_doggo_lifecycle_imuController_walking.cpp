@@ -472,17 +472,20 @@ private:
         double kP = 0.0016, kI = 0.0, kD = 0.0;     // NOTE: PID
         double corr_v_thres = 3.0, corr_d_thres = 1.0;              // threshold on pitch/roll and their vel 
         double corr_z_limit_kD = 0.01, corr_z_limit = 0.025;       // limit on +/- z
-        double pitch_shift = 1.0, roll_shift = -2.0;
+        //double pitch_shift = 1.0, roll_shift = -2.0;            // zero reference
+        //double pitch_shift = 1.7, roll_shift = -2.7;              // basic standing reference
+        double pitch_shift = 0.643, roll_shift = -2.917;              // basic on-support reference
+        //double pitch_shift = 0.0, roll_shift = 0.0;
 
         auto loop_rate = rclcpp::WallRate(update_rate_);        // Hz, for consistent loop rate
         double maxVelScale = 1.0, maxAccScale = 1.0;
-        int    waypoint_N_walk   = 100;                         // number of waypoints for each cycle
-        double waypoint_dt_walk  = 1.0/double(update_rate_);    // second for each waypoint, to match loop rate
+        int    waypoint_N_walk   = 50;                         // number of waypoints for each cycle
+        double waypoint_dt_walk  = 0.8/double(update_rate_);    // second for each waypoint, to match loop rate
         int    waypoint_N_stand  = 1;                           // standing require immidiate reaction
         double waypoint_dt_stand = 1.0/double(update_rate_);    // standing require faster trajectory
         double IK_bufferTime     = 0.10;                        // time at end of cycle buffer for IK calc
-        double swing_fraction    = 0.50;                        // creep < 0.25 < stable trot < 0.5 < trot
-        double lift = 0.02, x_stride_max = 0.02, y_stride_max = 0.025, x_shift = 0.008, y_shift = -0.01;
+        double swing_fraction    = 0.32;                        // creep < 0.25 < stable trot < 0.5 < trot
+        double lift = 0.04, x_stride_max = 0.02, y_stride_max = 0.03, x_shift = 0.0, y_shift = -0.007;
         //////////////////////////////////////////////////////////////////////////////////////////////////////////////
         pitch_pid_.set_gains(kP, kI, 0.0, aw_strat.i_max, aw_strat.i_min, aw_strat);     //P, I, D, upp, low
         roll_pid_ .set_gains(kP, kI, 0.0, aw_strat.i_max, aw_strat.i_min, aw_strat);
@@ -503,9 +506,10 @@ private:
             }
             
             previous_time = current_time;
-            RCLCPP_INFO(get_logger(), "CubicDoggoLifecycleManager:controlLoop_(): time = %d\n"
+            RCLCPP_INFO(get_logger(), "CubicDoggoLifecycleManager:controlLoop_(): time = %lf\n"
                                       "is_walking_ = %d, control_initialized_ = %d, idle_name_ = %s", 
-                                      current_time,is_walking_.load(),control_initialized_.load(),idle_name_.c_str());
+                                      current_time.seconds(), is_walking_.load(), control_initialized_.load(),
+                                      idle_name_.c_str());
             RCLCPP_INFO(get_logger(), "CubicDoggoLifecycleManager:controlLoop_(): "
                                       "raw pitch = %lf, raw roll = %lf", 
                                       current_pitch_.load(std::memory_order_relaxed), 
