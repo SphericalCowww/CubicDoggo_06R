@@ -10,7 +10,9 @@ Demos: wobbly IMU (<a href="https://www.reddit.com/r/robotics/comments/1u1iql9/c
 
 | device | models | count | specification |
 | - | - | - | - |
-| IMU | Adafruit <a href="https://www.adafruit.com/product/2472?srsltid=AfmBOopFaOJasrKIi1FkizYHaVd5CtUsoR6xX3qAALgU8sYoLY70Q55M">BNO055 [ADA2472]</a> | 1 | BNO055 has in-system Kalman Filter |
+| IMU | Adafruit <a href="https://www.adafruit.com/product/2472?srsltid=AfmBOopFaOJasrKIi1FkizYHaVd5CtUsoR6xX3qAALgU8sYoLY70Q55M">BNO055 [ADA2472]</a> | 1 | in-system Kalman Filter, but rate capped at 100 Hz |
+| IMU | <a href="https://de.aliexpress.com/item/1005009869623539.html">BMI088</a> | 1 | rate available at 200 Hz after ROS2 ``imu_filter_madgwick`` |
+| IMU | <a href="https://de.aliexpress.com/item/1005010500159119.html">ICM-42688-P</a> | 1 | rate available at 200-400 Hz after ROS2 ``imu_filter_madgwick`` |
 
 ## Testing IMU/LiDAR
 
