@@ -64,10 +64,10 @@
         <joint name="servo1_servo1_padding_FR" value="3.24"/>
         <joint name="servo2_servo2_padding_FR" value="4.24"/>
         <joint name="servo3_calfFeet_FR" value="3.84"/>
-        <joint name="servo1_servo1_padding_BL" value="3.19"/>
+        <joint name="servo1_servo1_padding_BL" value="3.24"/>
         <joint name="servo2_servo2_padding_BL" value="2.04"/>
         <joint name="servo3_calfFeet_BL" value="2.44"/>
-        <joint name="servo1_servo1_padding_BR" value="3.09"/>
+        <joint name="servo1_servo1_padding_BR" value="3.04"/>
         <joint name="servo2_servo2_padding_BR" value="4.24"/>
         <joint name="servo3_calfFeet_BR" value="3.84"/>
     </group_state>
