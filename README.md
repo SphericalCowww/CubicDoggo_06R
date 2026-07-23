@@ -8,6 +8,19 @@ Demos: wobbly IMU (<a href="https://www.reddit.com/r/robotics/comments/1u1iql9/c
 
 ### CAD Improvements
 
+1. Support on the 1st servos on both sides
+2. Support on the 3rd servos. These joints always broke first
+3. Spring-like feet (<a href="https://www.reddit.com/r/robotics/comments/1un8jxc/3dprinted_compliant_robot_legs/">Reddit</a>)
+4. Smaller feet tip. Swinging less mass should cause less wobbling
+
+Also updated the initial leg position such that the center of mass is optimized at trotting in place.
+
+<img src="https://github.com/SphericalCowww/CubicDoggo_06R/blob/main/CubicDoggo1.png" height="300"> <img src="https://github.com/SphericalCowww/CubicDoggo_06R/blob/main/CubicDoggo2.png" height="300"> 
+
+<img src="https://github.com/SphericalCowww/CubicDoggo_06R/blob/main/CubicDoggo3.png" height="200"> <img 
+src="https://github.com/SphericalCowww/CubicDoggo_06R/blob/main/CubicDoggo6.png" height="200"> <img 
+src="https://github.com/SphericalCowww/CubicDoggo_06R/blob/main/CubicDoggo7.png" height="200"> 
+
 ### IMU Hardware 
 
 | device | models | count | specification |
@@ -16,12 +29,9 @@ Demos: wobbly IMU (<a href="https://www.reddit.com/r/robotics/comments/1u1iql9/c
 | IMU | <a href="https://de.aliexpress.com/item/1005009869623539.html">BMI088</a> | 1 | rate available at 200 Hz after ROS2 ``imu_filter_madgwick`` |
 | IMU | <a href="https://de.aliexpress.com/item/1005010500159119.html">ICM-42688-P</a> | 1 | rate available at 200-400 Hz after ROS2 ``imu_filter_madgwick`` |
 
+## Testing IMU/Peripherals
 
-
-
-## Testing IMU/LiDAR
-
-### Testing IMU
+### Testing IMU BN055
 
 Following <a href="https://cdn-learn.adafruit.com/downloads/pdf/bno055-absolute-orientation-sensor-with-raspberry-pi-and-beaglebone-black.pdf">link</a>. It's a bit outdated, so do change up a bit and actually connect via I2C instead for RaspPi > 3:
 
@@ -64,6 +74,27 @@ To test BNO055 with ROS:
     ros2 topic echo /imu/euler              # show IMU content
     ros2 topic hz /imu/euler                # show IMU read speed
 
+### Testing the joystick controller:
+
+    ls /dev/input/js*
+    # output: /dev/input/js0
+    # otherwise do: sudo jstest /dev/input/js0
+    ros2 run joy joy_enumerate_devices
+    # if no device found
+    sudo usermod -aG input $USER
+    sudo reboot
+
+    cd CubicDoggo_06R
+    colcon build
+    source install/setup.bash
+    ros2 run joy joy_node
+    # on another terminal
+    ros2 run my_robot_controller cubic_doggo_joy_control
+    # on yet another terminal
+    ros2 node info /cubic_doggo_joy_control    
+    ros2 topic info /joy --verbose
+    ros2 topic echo /joy
+
 ### Checking RaspPi power
 
     for d in /sys/class/hwmon/hwmon*; do echo -n "$d: "; cat "$d/name"; done   # find the correct path for power alarm
@@ -75,6 +106,91 @@ To test BNO055 with ROS:
     echo 0 > /tmp/fake_alarm                                                   # create a fake alarm by
     ros2 run my_robot_peripheral rasp_pi_peripheral_node --ros-args -p alarm_path:=/tmp/fake_alarm
     echo 1 > /tmp/fake_alarm                                                   # create a fake alarm by
+
+## Running the robot
+
+Follow this <a href="https://github.com/SphericalCowww/CubicDoggo/tree/main#running-a-single-servo-on-ros2">GitHub section</a> to set up the servos.
+
+### Assembly and Launching URDF
+
+Run the following to view the moving parts:
+
+    cd CubicDoggo_06R
+    colcon build
+    source install/setup.bash
+    ros2 launch my_robot_description cubic_doggo.rviz.launch.xacro.py
+
+Notice that the placement of the first servo is different between the front and back legs.
+
+### Launching with commands
+
+Under: ``CubicDoggo_06R/src/my_robot_description/urdf/cubic_doggo.ros2_control.xacro``
+
+   * use ``<plugin>mock_components/GenericSystem</plugin>`` if just want rViz
+   * use ``<<plugin>cubic_doggo_namespace/HardwareInterfaceU2D2_cubic_doggo</plugin>`` if want to control hardware
+
+Under: ``CubicDoggo_06R/src/my_robot_bringup/launch/cubic_doggo.with_lifecycle.launch.py``
+
+   * choose from:
+     * ``executable="cubic_doggo_lifecycle"`` for no IMU
+     * ``executable="cubic_doggo_lifecycle_imuNode"`` for standing with an IMU node
+     * ``executable="cubic_doggo_lifecycle_imuController"`` for standing with an IMU controller using ``ros2_control``
+     * ``executable="cubic_doggo_lifecycle_imuController_walking"`` for standing/walking with an IMU controller using ``ros2_control``
+   * comment out ``imu_node`` unless using ``executable="cubic_doggo_lifecycle_imuNode"``
+   * comment out ``rviz_node`` if don't want rViz to show
+   * comment out ``joy_driver_node`` and ``joy_controller_node`` if don't want the joystick controller
+   * comment out ``peripheral_node`` if don't want warning from low power
+
+Start the robot (skip launching rviz_node, joy_driver_node, or joy_controller_node if needed):
+
+    cd CubicDoggo_06R
+    colcon build
+    source install/setup.bash
+    # comment in rvis node in CubicDoggo_06R/src/my_robot_bringup/launch/cubic_doggo.with_lifecycle.launch.py
+    ros2 launch my_robot_bringup cubic_doggo.with_lifecycle.launch.py
+    # on another terminal
+    ros2 topic pub -1 /leg_set_named example_interfaces/msg/String "{data: "rest"}"
+    ros2 topic pub -1 /leg_set_named example_interfaces/msg/String "{data: "stand"}"
+    ros2 topic pub -1 /leg_set_named example_interfaces/msg/String "{data: "sit"}"
+    ros2 topic pub -1 /leg_set_named example_interfaces/msg/String "{data: "bow"}"
+    ros2 topic pub -1 /leg_set_joint example_interfaces/msg/Float64MultiArray "{data: [0, 3.14, 3.14, 3.54]}"
+    ros2 topic pub -1 /leg_set_pose my_robot_interface/msg/CubicDoggoLegPoseTarget "{leg_index: 0, x: -0.092, y: 0.053, z: 0.135}" 
+    ros2 service call /leg_walk_toggle std_srvs/srv/SetBool "{data: true}"
+    ros2 service call /leg_walk_toggle std_srvs/srv/SetBool "{data: false}"
+
+Check out all the gait/IMU options under ``CubicDoggo_06R/src/my_robot_commander/src/cubic_doggo_lifecycle_imuController_walking.cpp``:
+
+    # rclcpp::get_logger("").set_level(rclcpp::Logger::Level::Warn);        // for silencing output
+    ...
+    # aw_strat.i_max =  0.05;
+    # aw_strat.i_min = -0.05;
+    # double kP = 0.0016, kI = 0.0001, kD = 0.0;     // NOTE: PID
+    # double corr_v_thres = 3.0, corr_d_thres = 1.0;              // threshold on pitch/roll and their vel 
+    # double corr_z_limit_kD = 0.01, corr_z_limit = 0.025;       // limit on +/- z
+    # double pitch_shift = 0.643, roll_shift = -2.917;              // basic on-support reference
+
+    # auto loop_rate = rclcpp::WallRate(update_rate_);        // Hz, for consistent loop rate
+    # double maxVelScale = 1.0, maxAccScale = 1.0;
+    # int    waypoint_N_walk   = 40;                         // number of waypoints for each cycle
+    # double waypoint_dt_walk  = 0.5/double(update_rate_);    // second for each waypoint, to match loop rate
+    # int    waypoint_N_stand  = 1;                           // standing require immidiate reaction
+    # double waypoint_dt_stand = 1.0/double(update_rate_);    // standing require faster trajectory
+    # double IK_bufferTime     = 0.10;                        // time at end of cycle buffer for IK calc
+    # double swing_fraction    = 0.32;                        // creep < 0.25 < stable trot < 0.5 < trot
+    # double lift = 0.02, x_stride_max = 0.02, y_stride_max = 0.03, x_shift = 0.0, y_shift = -0.007;
+
+### Launching at the start of RaspPi
+
+    chmod +x /home/cubicdoggo/Documents/CubicDoggo_06R/start_robot.sh
+    sudo cp /home/cubicdoggo/Documents/CubicDoggo_06R/robot_startup.service /etc/systemd/system/robot_startup.service
+    sudo chmod 644 /etc/systemd/system/robot_startup.service
+    sudo systemctl enable robot_startup.service                                # now will start at reboot
+    sudo systemctl daemon-reload                                               # reload whenever there is a change
+    # sudo systemctl restart robot_startup.service                             # restart, even if is rrunning
+    # sudo systemctl stop    robot_startup.service                             # stop right now, kill all relevant nodes
+    # sudo systemctl disable robot_startup.service                             # disable at reboot
+    # journalctl -u robot_startup.service -n 100 > start_robot_output.txt      # to check the output
+    # journalctl -u robot_startup.service -f
 
 ## Tracking the variables
 
@@ -110,95 +226,6 @@ To track the values (remember to connect the RaspPi to a monitor):
 
 <img src="https://github.com/SphericalCowww/CubicDoggo_06R/blob/main/plotJuggler0.png" width="600">
 
-## Running full robot
-
-Follow this chapter to set up the servos: ``https://github.com/SphericalCowww/CubicDoggo/tree/main#running-a-single-servo-on-ros2``
-
-### Assembly and Launching URDF
-
-Run the following to view the moving parts:
-
-    cd CubicDoggo_06R
-    colcon build
-    source install/setup.bash
-    ros2 launch my_robot_description cubic_doggo.rviz.launch.xacro.py
-
-Notice that the placement of the first servo is different between the front and back legs.
-
-### Launching with commands
-
-Under: ``CubicDoggo_06R/src/my_robot_description/urdf/cubic_doggo.ros2_control.xacro``
-
-   * use ``<plugin>mock_components/GenericSystem</plugin>`` if just want rViz
-   * use ``<<plugin>cubic_doggo_namespace/HardwareInterfaceU2D2_cubic_doggo</plugin>`` if want to control hardware
-
-Under: ``CubicDoggo_06R/src/my_robot_bringup/launch/cubic_doggo.with_lifecycle.launch.py``
-
-   * comment out ``rviz_node`` if don't want rViz to show
-   * comment out ``joy_driver_node`` and ``joy_controller_node`` if don't want the joystick controller
-   * comment out ``peripheral_node`` if don't want warning from low power
-
-Start the robot (skip launching rviz_node, joy_driver_node, or joy_controller_node if needed):
-
-    cd CubicDoggo_06R
-    colcon build
-    source install/setup.bash
-    # comment in rvis node in CubicDoggo_06R/src/my_robot_bringup/launch/cubic_doggo.with_lifecycle.launch.py
-    ros2 launch my_robot_bringup cubic_doggo.with_lifecycle.launch.py
-    # on another terminal
-    ros2 topic pub -1 /leg_set_named example_interfaces/msg/String "{data: "rest"}"
-    ros2 topic pub -1 /leg_set_named example_interfaces/msg/String "{data: "stand"}"
-    ros2 topic pub -1 /leg_set_named example_interfaces/msg/String "{data: "sit"}"
-    ros2 topic pub -1 /leg_set_named example_interfaces/msg/String "{data: "bow"}"
-    ros2 topic pub -1 /leg_set_joint example_interfaces/msg/Float64MultiArray "{data: [0, 3.14, 3.14, 3.54]}"
-    ros2 topic pub -1 /leg_set_pose my_robot_interface/msg/CubicDoggoLegPoseTarget "{leg_index: 0, x: -0.092, y: 0.053, z: 0.135}" 
-    ros2 service call /leg_walk_toggle std_srvs/srv/SetBool "{data: true}"
-    ros2 service call /leg_walk_toggle std_srvs/srv/SetBool "{data: false}"
-
-Check out all the gait options under ``CubicDoggo_06R/src/my_robot_commander/src/cubic_doggo_lifecycle.cpp``:
-
-    # double maxVelScale = 1.0, maxAccScale = 1.0;
-    # int    waypoint_N     = 100;       // number of waypoints for each cycle,      default 100
-    # double waypoint_dt    = 0.01;      // second for each waypoint,                default 0.01
-    # double IK_bufferTime  = 0.10;      // time at end of cycle buffer for IK calc, default 0.10
-    # double swing_fraction = 0.50;      // creep < 0.25 < stable trot < 0.5 < trot
-    # double lift = 0.02, x_stride_max = 0.02, y_stride_max = 0.025, x_shift = 0.0, y_shift = 0.0;
-    # double x_stride = 0.0, y_stride = 0.0;
-
-### Testing the joystick controller:
-
-    ls /dev/input/js*
-    # output: /dev/input/js0
-    # otherwise do: sudo jstest /dev/input/js0
-    ros2 run joy joy_enumerate_devices
-    # if no device found
-    sudo usermod -aG input $USER
-    sudo reboot
-
-    cd CubicDoggo
-    colcon build
-    source install/setup.bash
-    ros2 run joy joy_node
-    # on another terminal
-    ros2 run my_robot_controller cubic_doggo_joy_control
-    # on yet another terminal
-    ros2 node info /cubic_doggo_joy_control    
-    ros2 topic info /joy --verbose
-    ros2 topic echo /joy
-    
-### Launching at the start of RaspPi
-
-    chmod +x /home/cubicdoggo/Documents/CubicDoggo_06R/start_robot.sh
-    sudo cp /home/cubicdoggo/Documents/CubicDoggo_06R/robot_startup.service /etc/systemd/system/robot_startup.service
-    sudo chmod 644 /etc/systemd/system/robot_startup.service
-    sudo systemctl enable robot_startup.service                                # now will start at reboot
-    sudo systemctl daemon-reload                                               # reload whenever there is a change
-    # sudo systemctl restart robot_startup.service                             # restart, even if is rrunning
-    # sudo systemctl stop    robot_startup.service                             # stop right now, kill all relevant nodes
-    # sudo systemctl disable robot_startup.service                             # disable at reboot
-    # journalctl -u robot_startup.service -n 100 > start_robot_output.txt      # to check the output
-    # journalctl -u robot_startup.service -f
-
 ### IMU balancing
 
 Configuration (update the code if direction differs):
@@ -217,7 +244,6 @@ Standing up and then changing to a slope. Unstable IMU with lots of oscillations
 Walking gait, holding position:
 
 <img src="https://github.com/SphericalCowww/CubicDoggo_06R/blob/main/plotJuggler2_walkingGait.png" width="1000">
-
 
 ## References:
 - ROS1 Packages for CHAMP Quadruped Controller (<a href="https://github.com/chvmp/champ">GitHub</a>) => node based IMU control with classical walk gait
