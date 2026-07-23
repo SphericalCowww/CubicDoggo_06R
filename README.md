@@ -237,11 +237,15 @@ Checking loop speed for latency, including IK calculation and IMU readout:
 
     ros2 topic hz /joint_states
 
-Standing up and then changing to a slope. Unstable IMU with lots of oscillations:
+Standing up and then changing to a slope, with Kp parameter only. Never correct to the exact values:
 
-<img src="https://github.com/SphericalCowww/CubicDoggo_06R/blob/main/plotJuggler1_standThenSlope.png" width="1000">
+<img src="https://github.com/SphericalCowww/CubicDoggo_06R/blob/main/plotJuggler1_standThenSlope_Ponly.png" width="1000">
 
-Walking gait, holding position:
+Standing up and then changing to a slope, with full PID parameters. Large oscillations:
+
+<img src="https://github.com/SphericalCowww/CubicDoggo_06R/blob/main/plotJuggler1_standThenSlope_PID.png" width="1000">
+
+Walking gait, trotting in place:
 
 <img src="https://github.com/SphericalCowww/CubicDoggo_06R/blob/main/plotJuggler2_walkingGait.png" width="1000">
 
