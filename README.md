@@ -1,6 +1,6 @@
 # CubicDoggo: Upgrade to Incorporate IMU/LiDAR
 
-Cubic Doggo 06R (High Mobility Type, sort of) is upgraded from the base Cubic Doggo <a href="https://github.com/SphericalCowww/CubicDoggo">GitHub</a>. Copy <a href="https://github.com/SphericalCowww/CubicDoggo/tree/main/src/my_robot_description/mesh/CADv1">CADv1</a> under ``CubicDoggo_06R/tree/main/src/my_robot_description/mesh/``. Also, follow this chapter to set up the servos: ``https://github.com/SphericalCowww/CubicDoggo/tree/main#running-a-single-servo-on-ros2``
+Cubic Doggo 06R (High Mobility) is upgraded from the base Cubic Doggo <a href="https://github.com/SphericalCowww/CubicDoggo">GitHub</a>. Copy <a href="https://github.com/SphericalCowww/CubicDoggo/tree/main/src/my_robot_description/mesh/CADv1">CADv1</a> under ``CubicDoggo_06R/tree/main/src/my_robot_description/mesh/``. Also, follow this chapter to set up the servos: ``https://github.com/SphericalCowww/CubicDoggo/tree/main#running-a-single-servo-on-ros2``
 
 Demos: wobbly IMU (<a href="https://www.reddit.com/r/robotics/comments/1u1iql9/cubic_doggo_update_wobbly_imu/">Reddit</a>, <a href="https://www.reddit.com/r/ROS/comments/1u1j9yf/cubic_doggo_update_wobbly_imu/">Reddit</a>).
 
@@ -217,4 +217,6 @@ Walking gait, holding position:
 - Spot Micro (<a href="https://github.com/mike4192/spotMicro">GitHub</a>, <a href="https://spotmicroai.readthedocs.io/en/latest/">link</a>) => node based IMU control with classical walk gait
 - Pupper V3 (<a href="https://pupper-v3-documentation.readthedocs.io/en/latest/">link</a>) => ros2_control based IMU control with RL walk gait
 
+## Acknowledgements
 
+- Some utility programs are adapted from the ROBOTIS DYNAMIXEL Workbench examples: https://github.com/ROBOTIS-GIT/dynamixel-workbench/tree/main/dynamixel_workbench_toolbox/examples/src. These files remain licensed under the Apache License 2.0. Modifications are documented in the source files.
