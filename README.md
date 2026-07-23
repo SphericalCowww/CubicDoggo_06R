@@ -1,18 +1,23 @@
-# CubicDoggo: Upgrade to Incorporate IMU/LiDAR
+# Cubic Doggo 06R: Homemade 12-DOF 4-Legged Robot Recipe, With IMU
 
-Cubic Doggo 06R (High Mobility) is upgraded from the base Cubic Doggo <a href="https://github.com/SphericalCowww/CubicDoggo">GitHub</a>. Copy <a href="https://github.com/SphericalCowww/CubicDoggo/tree/main/src/my_robot_description/mesh/CADv1">CADv1</a> under ``CubicDoggo_06R/tree/main/src/my_robot_description/mesh/``. Also, follow this chapter to set up the servos: ``https://github.com/SphericalCowww/CubicDoggo/tree/main#running-a-single-servo-on-ros2``
+Cubic Doggo 06R (High Mobility) is an upgrade from the base Cubic Doggo <a href="https://github.com/SphericalCowww/CubicDoggo">GitHub</a>. It receives several mechanical improvements and applies an IMU for balance.
 
-Demos: wobbly IMU (<a href="https://www.reddit.com/r/robotics/comments/1u1iql9/cubic_doggo_update_wobbly_imu/">Reddit</a>, <a href="https://www.reddit.com/r/ROS/comments/1u1j9yf/cubic_doggo_update_wobbly_imu/">Reddit</a>).
+Demos: wobbly IMU (<a href="https://www.reddit.com/r/robotics/comments/1u1iql9/cubic_doggo_update_wobbly_imu/">Reddit</a>/<a href="https://www.reddit.com/r/ROS/comments/1u1j9yf/cubic_doggo_update_wobbly_imu/">Reddit</a>), standing IMU tunning (<a href="https://www.reddit.com/r/robotics/comments/1ugo3kj/cubic_doggo_update_returning_to_basics_after_all/">Reddit</a>/<a href="https://www.reddit.com/r/ROS/comments/1ugw66z/cubic_doggo_update_returning_to_basics_after_all/">Reddit</a>), leg lifting (<a href="https://www.reddit.com/r/robotics/comments/1ux2n51/cubic_doggo_update_what_does_it_takes_to_lift_its/">Reddit</a>) => actually can do 8 mm after more tunning, walking with IMU (<a href="">Reddit</a>)
 
 ## Ingredients
 
-### Hardware requirements
+### CAD Improvements
+
+### IMU Hardware 
 
 | device | models | count | specification |
 | - | - | - | - |
 | IMU | Adafruit <a href="https://www.adafruit.com/product/2472?srsltid=AfmBOopFaOJasrKIi1FkizYHaVd5CtUsoR6xX3qAALgU8sYoLY70Q55M">BNO055 [ADA2472]</a> | 1 | in-system Kalman Filter, but rate capped at 100 Hz |
 | IMU | <a href="https://de.aliexpress.com/item/1005009869623539.html">BMI088</a> | 1 | rate available at 200 Hz after ROS2 ``imu_filter_madgwick`` |
 | IMU | <a href="https://de.aliexpress.com/item/1005010500159119.html">ICM-42688-P</a> | 1 | rate available at 200-400 Hz after ROS2 ``imu_filter_madgwick`` |
+
+
+
 
 ## Testing IMU/LiDAR
 
@@ -106,6 +111,8 @@ To track the values (remember to connect the RaspPi to a monitor):
 <img src="https://github.com/SphericalCowww/CubicDoggo_06R/blob/main/plotJuggler0.png" width="600">
 
 ## Running full robot
+
+Follow this chapter to set up the servos: ``https://github.com/SphericalCowww/CubicDoggo/tree/main#running-a-single-servo-on-ros2``
 
 ### Assembly and Launching URDF
 
