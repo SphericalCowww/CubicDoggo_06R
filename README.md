@@ -2,7 +2,7 @@
 
 Cubic Doggo 06R (High Mobility) is an upgrade from the base Cubic Doggo <a href="https://github.com/SphericalCowww/CubicDoggo">GitHub</a>. It receives several mechanical improvements and applies an IMU for balance.
 
-Demos: wobbly IMU (<a href="https://www.reddit.com/r/robotics/comments/1u1iql9/cubic_doggo_update_wobbly_imu/">Reddit</a>/<a href="https://www.reddit.com/r/ROS/comments/1u1j9yf/cubic_doggo_update_wobbly_imu/">Reddit</a>), standing IMU tunning (<a href="https://www.reddit.com/r/robotics/comments/1ugo3kj/cubic_doggo_update_returning_to_basics_after_all/">Reddit</a>/<a href="https://www.reddit.com/r/ROS/comments/1ugw66z/cubic_doggo_update_returning_to_basics_after_all/">Reddit</a>), leg lifting (<a href="https://www.reddit.com/r/robotics/comments/1ux2n51/cubic_doggo_update_what_does_it_takes_to_lift_its/">Reddit</a>) => actually can do 8 mm after more tunning, walking with IMU (<a href="">Reddit</a>)
+Demos: wobbly IMU (<a href="https://www.reddit.com/r/robotics/comments/1u1iql9/cubic_doggo_update_wobbly_imu/">Reddit</a>/<a href="https://www.reddit.com/r/ROS/comments/1u1j9yf/cubic_doggo_update_wobbly_imu/">Reddit</a>), standing IMU tunning (<a href="https://www.reddit.com/r/robotics/comments/1ugo3kj/cubic_doggo_update_returning_to_basics_after_all/">Reddit</a>/<a href="https://www.reddit.com/r/ROS/comments/1ugw66z/cubic_doggo_update_returning_to_basics_after_all/">Reddit</a>), leg lifting (<a href="https://www.reddit.com/r/robotics/comments/1ux2n51/cubic_doggo_update_what_does_it_takes_to_lift_its/">Reddit</a>), walking with IMU (<a href="">Reddit</a>)
 
 The CAD files can be found in <a href="https://github.com/SphericalCowww/CubicDoggo_06R/tree/main/src/my_robot_description/mesh/CADv2">directory</a>.
 
@@ -10,6 +10,7 @@ The CAD files can be found in <a href="https://github.com/SphericalCowww/CubicDo
 
 * Left: the following shows the high-lift mode available after all the mechanical improvements. The black notepad in the center is 1cm in height, and the robot is able to land on it with all 4 of its feet. However, you can see that landing off the notepad gives a rather high impact load to the landing leg.
 * Right: walking with IMU balance correction based on BNO055, controlled using PID (technically on kP to avoid diverging oscillation). It's walking down from the notepad because the current IMU system cannot support the high-lift mode. Although the effect is not obvious, the robot is constantly trying to balance itself after standing up and during walking.
+* Note also that a servo (or servos) from the robot's back-right leg is likely damaged/performance-reduced from dimension collisions during the test using the spring/compliant feet (see <a href="https://www.reddit.com/r/robotics/comments/1ux2n51/cubic_doggo_update_what_does_it_takes_to_lift_its/">Reddit</a>) 
 
 ## Ingredients
 
