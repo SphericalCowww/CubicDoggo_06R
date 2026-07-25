@@ -224,7 +224,7 @@ To track the values (remember to connect the RaspPi to a monitor):
     ## OK
     ## on the left panel, expand /imu and /joint_states and drag the variable to the center for live plotting
 
-<img src="https://github.com/SphericalCowww/CubicDoggo_06R/blob/main/plotJuggler0.png" width="600">
+<img src="https://github.com/SphericalCowww/CubicDoggo_06R/blob/main/plotJuggler0.png" width="500">
 
 ### IMU balancing
 
@@ -239,15 +239,23 @@ Checking loop speed for latency, including IK calculation and IMU readout:
 
 Standing up and then changing to a slope, with Kp parameter only. Never correct to the exact values:
 
-<img src="https://github.com/SphericalCowww/CubicDoggo_06R/blob/main/plotJuggler1_standThenSlope_Ponly.png" width="1000">
+<img src="https://github.com/SphericalCowww/CubicDoggo_06R/blob/main/plotJuggler1_standThenSlope_Ponly.png" width="500">
 
 Standing up and then changing to a slope, with full PID parameters. Large oscillations:
 
-<img src="https://github.com/SphericalCowww/CubicDoggo_06R/blob/main/plotJuggler1_standThenSlope_PID.png" width="1000">
+<img src="https://github.com/SphericalCowww/CubicDoggo_06R/blob/main/plotJuggler1_standThenSlope_PID.png" width="500">
 
 Walking gait, trotting in place:
 
-<img src="https://github.com/SphericalCowww/CubicDoggo_06R/blob/main/plotJuggler2_walkingGait.png" width="1000">
+<img src="https://github.com/SphericalCowww/CubicDoggo_06R/blob/main/plotJuggler2_walkingGait.png" width="500">
+
+Walking gait with IMU, trotting in place:
+
+<img src="https://github.com/SphericalCowww/CubicDoggo_06R/blob/main/plotJuggler2_walkingGait_IMU.png" width="500">
+
+High-lift walking gait, trotting in place:
+
+<img src="https://github.com/SphericalCowww/CubicDoggo_06R/blob/main/plotJuggler2_walkingGait_HighLift.png" width="500">
 
 ## References:
 - ROS1 Packages for CHAMP Quadruped Controller (<a href="https://github.com/chvmp/champ">GitHub</a>) => node based IMU control with classical walk gait
