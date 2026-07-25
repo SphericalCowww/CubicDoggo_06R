@@ -1,6 +1,6 @@
 # Cubic Doggo 06R: Homemade 12-DOF 4-Legged Robot Recipe, With IMU
 
-Cubic Doggo 06R (High Mobility) is an upgrade from the base Cubic Doggo <a href="https://github.com/SphericalCowww/CubicDoggo">GitHub</a>. It receives several mechanical improvements and applies an IMU for balance. The upgraded CADv2 files can be found in <a href="https://github.com/SphericalCowww/CubicDoggo_06R/tree/main/src/my_robot_description/mesh/CADv2">directory</a>.
+Cubic Doggo 06R High Mobility is an upgrade from the base <a href="https://github.com/SphericalCowww/CubicDoggo">Cubic Doggo</a>. It receives several mechanical improvements and applies an IMU for balance. The upgraded CADv2 files can be found in <a href="https://github.com/SphericalCowww/CubicDoggo_06R/tree/main/src/my_robot_description/mesh/CADv2">directory</a>.
 
 Demos: wobbly IMU (<a href="https://www.reddit.com/r/robotics/comments/1u1iql9/cubic_doggo_update_wobbly_imu/">Reddit</a>/<a href="https://www.reddit.com/r/ROS/comments/1u1j9yf/cubic_doggo_update_wobbly_imu/">Reddit</a>), standing IMU tunning (<a href="https://www.reddit.com/r/robotics/comments/1ugo3kj/cubic_doggo_update_returning_to_basics_after_all/">Reddit</a>/<a href="https://www.reddit.com/r/ROS/comments/1ugw66z/cubic_doggo_update_returning_to_basics_after_all/">Reddit</a>), leg lifting (<a href="https://www.reddit.com/r/robotics/comments/1ux2n51/cubic_doggo_update_what_does_it_takes_to_lift_its/">Reddit</a>), walking with IMU (<a href="">Reddit</a>)
 
@@ -270,6 +270,11 @@ Walking gait with IMU, trotting in place:
 High-lift walking gait, trotting in place:
 
 <img src="https://github.com/SphericalCowww/CubicDoggo_06R/blob/main/plotJuggler2_walkingGait_HighLift.png" width="500">
+
+## Next directions
+
+- <a href="https://github.com/SphericalCowww/CubicDoggo_07B">Cubic Doggo 07B Wouf</a>: ST-3215-C018 servo adaptation (higher torque, cheaper, but harder to develop)
+- <a href="https://github.com/SphericalCowww/CubicDoggo_06Z">Cubic Doggo 06Z Neucommu</a>: AI and simulation testbed for reinforcement learning
 
 ## References:
 - ROS1 Packages for CHAMP Quadruped Controller (<a href="https://github.com/chvmp/champ">GitHub</a>) => node based IMU control with classical walk gait
