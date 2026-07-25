@@ -4,6 +4,10 @@ Cubic Doggo 06R (High Mobility) is an upgrade from the base Cubic Doggo <a href=
 
 Demos: wobbly IMU (<a href="https://www.reddit.com/r/robotics/comments/1u1iql9/cubic_doggo_update_wobbly_imu/">Reddit</a>/<a href="https://www.reddit.com/r/ROS/comments/1u1j9yf/cubic_doggo_update_wobbly_imu/">Reddit</a>), standing IMU tunning (<a href="https://www.reddit.com/r/robotics/comments/1ugo3kj/cubic_doggo_update_returning_to_basics_after_all/">Reddit</a>/<a href="https://www.reddit.com/r/ROS/comments/1ugw66z/cubic_doggo_update_returning_to_basics_after_all/">Reddit</a>), leg lifting (<a href="https://www.reddit.com/r/robotics/comments/1ux2n51/cubic_doggo_update_what_does_it_takes_to_lift_its/">Reddit</a>) => actually can do 8 mm after more tunning, walking with IMU (<a href="">Reddit</a>)
 
+CAD can be found in <a href="https://github.com/SphericalCowww/CubicDoggo_06R/tree/main/src/my_robot_description/mesh/CADv2">directory</a>.
+
+<img src="https://github.com/SphericalCowww/CubicDoggo_06R/blob/main/CubicDoggo_highLift.png" height="300"> <img src="https://github.com/SphericalCowww/CubicDoggo_06R/blob/main/CubicDoggo_IMU.png" height="300"> 
+
 ## Ingredients
 
 ### CAD Improvements
@@ -271,3 +275,7 @@ High-lift walking gait, trotting in place:
 ## Acknowledgements
 
 - Some utility programs are adapted from the ROBOTIS DYNAMIXEL Workbench examples: https://github.com/ROBOTIS-GIT/dynamixel-workbench/tree/main/dynamixel_workbench_toolbox/examples/src. These files remain licensed under the Apache License 2.0. Modifications are documented in the source files.
+
+- Thanks to all the Redditors for their nice comments/advices :)
+
+
