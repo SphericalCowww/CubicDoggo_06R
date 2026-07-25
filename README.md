@@ -1,10 +1,8 @@
 # Cubic Doggo 06R: Homemade 12-DOF 4-Legged Robot Recipe, With IMU
 
-Cubic Doggo 06R (High Mobility) is an upgrade from the base Cubic Doggo <a href="https://github.com/SphericalCowww/CubicDoggo">GitHub</a>. It receives several mechanical improvements and applies an IMU for balance.
+Cubic Doggo 06R (High Mobility) is an upgrade from the base Cubic Doggo <a href="https://github.com/SphericalCowww/CubicDoggo">GitHub</a>. It receives several mechanical improvements and applies an IMU for balance. The upgraded CADv2 files can be found in <a href="https://github.com/SphericalCowww/CubicDoggo_06R/tree/main/src/my_robot_description/mesh/CADv2">directory</a>.
 
 Demos: wobbly IMU (<a href="https://www.reddit.com/r/robotics/comments/1u1iql9/cubic_doggo_update_wobbly_imu/">Reddit</a>/<a href="https://www.reddit.com/r/ROS/comments/1u1j9yf/cubic_doggo_update_wobbly_imu/">Reddit</a>), standing IMU tunning (<a href="https://www.reddit.com/r/robotics/comments/1ugo3kj/cubic_doggo_update_returning_to_basics_after_all/">Reddit</a>/<a href="https://www.reddit.com/r/ROS/comments/1ugw66z/cubic_doggo_update_returning_to_basics_after_all/">Reddit</a>), leg lifting (<a href="https://www.reddit.com/r/robotics/comments/1ux2n51/cubic_doggo_update_what_does_it_takes_to_lift_its/">Reddit</a>), walking with IMU (<a href="">Reddit</a>)
-
-The CAD files can be found in <a href="https://github.com/SphericalCowww/CubicDoggo_06R/tree/main/src/my_robot_description/mesh/CADv2">directory</a>.
 
 <img src="https://github.com/SphericalCowww/CubicDoggo_06R/blob/main/CubicDoggo_highLift.gif" height="220"><img src="https://github.com/SphericalCowww/CubicDoggo_06R/blob/main/CubicDoggo_IMU.gif" height="220">
 
@@ -36,6 +34,8 @@ src="https://github.com/SphericalCowww/CubicDoggo_06R/blob/main/CubicDoggo7.png"
 | IMU | Adafruit <a href="https://www.adafruit.com/product/2472?srsltid=AfmBOopFaOJasrKIi1FkizYHaVd5CtUsoR6xX3qAALgU8sYoLY70Q55M">BNO055 [ADA2472]</a> | 1 | in-system Kalman Filter, but rate capped at 100 Hz |
 | IMU | <a href="https://de.aliexpress.com/item/1005009869623539.html">BMI088</a> | 1 | rate available at 200 Hz after ROS2 ``imu_filter_madgwick`` |
 | IMU | <a href="https://de.aliexpress.com/item/1005010500159119.html">ICM-42688-P</a> | 1 | rate available at 200-400 Hz after ROS2 ``imu_filter_madgwick`` |
+
+So far, only BNO055 is tested. Future incorporation with BMI088 or ICM-42688-P will likely improve the IMU performance: the current PID oscillation is potentially caused by delayed IMU correction at the BNO055 readout rate set of 50 Hz.
 
 ## Testing IMU/Peripherals
 
