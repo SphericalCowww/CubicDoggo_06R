@@ -226,6 +226,10 @@ To track the values (remember to connect the RaspPi to a monitor):
 
 <img src="https://github.com/SphericalCowww/CubicDoggo_06R/blob/main/plotJuggler0.png" width="500">
 
+Note that to enable plotting, the robot needs an HDMI cable to connect to the monitor, a mouse, a keyboard, and a direct power source (it's rather energy-consuming). The controller is still remote. This means extra weights are placed on the robot, and so what's being plotted is not exactly equivalent to battery mode. The photo shows the connections:
+
+<img src="https://github.com/SphericalCowww/CubicDoggo_06R/blob/main/fig_plotConnections.png" width="400">
+
 ### IMU balancing
 
 Configuration (update the code if direction differs):
@@ -244,6 +248,8 @@ Standing up and then changing to a slope, with Kp parameter only. Never correct 
 Standing up and then changing to a slope, with full PID parameters. Large oscillations:
 
 <img src="https://github.com/SphericalCowww/CubicDoggo_06R/blob/main/plotJuggler1_standThenSlope_PID.png" width="500">
+
+### Walking gaits
 
 Walking gait, trotting in place:
 
