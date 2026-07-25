@@ -277,6 +277,8 @@ High-lift walking gait, trotting in place:
 - <a href="https://github.com/SphericalCowww/CubicDoggo_06Z">Cubic Doggo 06Z Neucommu</a>: AI and simulation testbed for reinforcement learning
 
 ## References:
+
+- Dr Jon EA: Pico & Pico 2, The BNO055: At Last, an IMU I Can Tame Quickly - C/C++ (<a href="https://www.youtube.com/watch?v=x6I02YAyZmU">YouTube</a>) 
 - ROS1 Packages for CHAMP Quadruped Controller (<a href="https://github.com/chvmp/champ">GitHub</a>) => node based IMU control with classical walk gait
 - Spot Micro (<a href="https://github.com/mike4192/spotMicro">GitHub</a>, <a href="https://spotmicroai.readthedocs.io/en/latest/">link</a>) => node based IMU control with classical walk gait
 - Pupper V3 (<a href="https://pupper-v3-documentation.readthedocs.io/en/latest/">link</a>) => ros2_control based IMU control with RL walk gait
