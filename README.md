@@ -6,7 +6,7 @@ Demos: wobbly IMU (<a href="https://www.reddit.com/r/robotics/comments/1u1iql9/c
 
 CAD can be found in <a href="https://github.com/SphericalCowww/CubicDoggo_06R/tree/main/src/my_robot_description/mesh/CADv2">directory</a>.
 
-<img src="https://github.com/SphericalCowww/CubicDoggo_06R/blob/main/CubicDoggo_highLift.png" height="300"> <img src="https://github.com/SphericalCowww/CubicDoggo_06R/blob/main/CubicDoggo_IMU.png" height="300"> 
+<img src="https://github.com/SphericalCowww/CubicDoggo_06R/blob/main/CubicDoggo_highLift.gif" height="300"> <img src="https://github.com/SphericalCowww/CubicDoggo_06R/blob/main/CubicDoggo_IMU.gif" height="300"> 
 
 ## Ingredients
 
