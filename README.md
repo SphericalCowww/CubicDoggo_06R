@@ -145,6 +145,8 @@ Under: ``CubicDoggo_06R/src/my_robot_bringup/launch/cubic_doggo.with_lifecycle.l
      * ``executable="cubic_doggo_lifecycle_imuNode"`` for standing with an IMU node
      * ``executable="cubic_doggo_lifecycle_imuController"`` for standing with an IMU controller using ``ros2_control``
      * ``executable="cubic_doggo_lifecycle_imuController_walking"`` for standing/walking with an IMU controller using ``ros2_control``
+     * ``executable="cubic_doggo_lifecycle_imuController_walkingToggle"`` to start with no IMU, but can toggle on for standing/walking with an IMU controller using ``ros2_control``
+
    * comment out ``imu_node`` unless using ``executable="cubic_doggo_lifecycle_imuNode"``
    * comment out ``rviz_node`` if don't want rViz to show
    * comment out ``joy_driver_node`` and ``joy_controller_node`` if don't want the joystick controller
