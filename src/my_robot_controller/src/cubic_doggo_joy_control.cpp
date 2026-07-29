@@ -18,6 +18,7 @@ public:
         );
         command_pub_ = this->create_publisher<example_interfaces::msg::String>("/leg_set_named", 10);
         walk_client_ = this->create_client<std_srvs::srv::SetBool>            ("/leg_walk_toggle");
+        imu_client_  = this->create_client<std_srvs::srv::SetBool>            ("/leg_imu_toggle");
         feet_pub_    = this->create_publisher<custom_feet_array>              ("/leg_set_feet", 10);
         RCLCPP_INFO(this->get_logger(), "CubicDoggoJoyControl:constructor()"
                                         "controller node started, listening on /joy...");
@@ -54,6 +55,13 @@ private:
             if (msg->axes[7] < -0.5 && prev_axes_[7] >= -0.5) {
                 call_walk_(false);
             }
+            if (msg->axes[6] > 0.5 && prev_axes_[6] <= 0.5) {
+                call_imu_(true);
+            }
+            if (msg->axes[6] < -0.5 && prev_axes_[6] >= -0.5) {
+                call_imu_(false);
+            }
+            
            
             double deadzone = 0.05; 
             auto feet_msg = custom_feet_array();
@@ -85,11 +93,25 @@ private:
         RCLCPP_INFO(this->get_logger(), "CubicDoggoJoyControl:call_walk_(): walk state '%s' sent", 
                                         walk_state_str.c_str());
     }
+    void call_imu_(bool imu_state) {
+        if (!imu_client_->wait_for_service(std::chrono::milliseconds(500))) {
+            RCLCPP_WARN(this->get_logger(), "CubicDoggoJoyControl:call_walk_(): "
+                                            "service /leg_walk_toggle not available!");
+            return;
+        }
+        auto request = std::make_shared<std_srvs::srv::SetBool::Request>();
+        request->data = imu_state;
+        auto result = imu_client_->async_send_request(request);
+        std::string imu_state_str = imu_state ? "true" : "false";
+        RCLCPP_INFO(this->get_logger(), "CubicDoggoJoyControl:call_imu_(): imu state '%s' sent",
+                                        imu_state_str.c_str());
+    }
 
     rclcpp::Subscription<sensor_msgs::msg::Joy>::SharedPtr        joy_subscriber_;
     rclcpp::Publisher<example_interfaces::msg::String>::SharedPtr command_pub_;
     rclcpp::Publisher<custom_feet_array>::SharedPtr               feet_pub_;
     rclcpp::Client<std_srvs::srv::SetBool>::SharedPtr             walk_client_;
+    rclcpp::Client<std_srvs::srv::SetBool>::SharedPtr             imu_client_;
     std::vector<int>   prev_buttons_;
     std::vector<float> prev_axes_;
 };

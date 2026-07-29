@@ -60,7 +60,8 @@ def generate_launch_description():
         #executable="cubic_doggo_lifecycle",
         #executable="cubic_doggo_lifecycle_imuNode",            # needs imu_node
         #executable="cubic_doggo_lifecycle_imuController",
-        executable="cubic_doggo_lifecycle_imuController_walking",
+        #executable="cubic_doggo_lifecycle_imuController_walking",
+        executable="cubic_doggo_lifecycle_imuController_walkingToggle",
         parameters=[
             moveit_config.robot_description,           # the URDF math
             moveit_config.robot_description_semantic,  # the SRDF 
