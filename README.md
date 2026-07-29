@@ -18,6 +18,7 @@ Demos: wobbly IMU (<a href="https://www.reddit.com/r/robotics/comments/1u1iql9/c
 2. Support on the 3rd servos. These joints always broke first
 3. Spring-like feet (<a href="https://www.reddit.com/r/robotics/comments/1un8jxc/3dprinted_compliant_robot_legs/">Reddit</a>)
 4. Smaller feet tip. Swinging less mass should cause less wobbling
+5. Start using PLA+
 
 Also updated the initial leg position such that the center of mass is optimized at trotting in place.
 
