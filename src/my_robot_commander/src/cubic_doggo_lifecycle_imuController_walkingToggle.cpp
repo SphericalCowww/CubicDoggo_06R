@@ -131,7 +131,7 @@ public:
             callback_group_);
         imu_service_ = this->create_service<std_srvs::srv::SetBool>(
             "leg_imu_toggle",
-            std::bind(&CubicDoggoLifecycleManager::handleiMUrequest_, this, _1, _2), 
+            std::bind(&CubicDoggoLifecycleManager::handleIMUrequest_, this, _1, _2), 
             rclcpp::ServicesQoS(), 
             callback_group_);
 
