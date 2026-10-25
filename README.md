@@ -10,6 +10,11 @@ Demos: wobbly IMU (<a href="https://www.reddit.com/r/robotics/comments/1u1iql9/c
 * Right: walking with IMU balance correction based on BNO055, controlled using PID (technically on kP to avoid diverging oscillation). It's walking down from the notepad because the current IMU system cannot support the high-lift mode. Although the effect is not obvious, the robot is constantly trying to balance itself after standing up and during walking.
 * Note also that a servo (or servos) from the robot's back-right leg is likely damaged/performance-reduced from dimension collisions during the test using the spring/compliant feet (see <a href="https://www.reddit.com/r/robotics/comments/1ux2n51/cubic_doggo_update_what_does_it_takes_to_lift_its/">Reddit</a>) 
 
+<img src="https://github.com/SphericalCowww/CubicDoggo_06R/blob/main/CubicDoggo_foward.webp" height="200"><img src="https://github.com/SphericalCowww/CubicDoggo_06R/blob/main/CubicDoggo_right_left.webp" height="200"> 
+
+* Left: walk gait forward
+* Right: walk gait turn right then turn left
+
 ## Ingredients
 
 ### CAD Improvements
